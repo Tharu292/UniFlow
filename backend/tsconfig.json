@@ -9,10 +9,10 @@
     // See also https://aka.ms/tsconfig/module
     "module": "commonjs",
     "target": "es2020",
-    "types": [],
+    
     // For nodejs:
     // "lib": ["esnext"],
-    // "types": ["node"],
+     "types": ["node"],
     // and npm install -D @types/node
 
     // Other Outputs
@@ -41,6 +41,12 @@
     "moduleDetection": "force",
     "skipLibCheck": true,
     "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+    "moduleResolution": "node",
+    "resolveJsonModule": true,
+    "baseUrl": "."
+
+
   },
   "include": ["src/**/*"],
   "exclude": ["node_modules", "dist"]

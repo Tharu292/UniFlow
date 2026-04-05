@@ -19,3 +19,14 @@ export const resourceAPI = {
   }),
   download: (filename: string) => `${API.defaults.baseURL}/resources/download/${filename}`,
 };
+
+// Add token automatically
+API.interceptors.request.use((config) => {
+  const token = localStorage.getItem("token");
+  if (token && config.headers) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+});
+
+export default API;
