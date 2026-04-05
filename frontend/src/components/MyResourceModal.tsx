@@ -17,7 +17,7 @@ export default function MyResources({ resources, onDelete, onEdit }: Props) {
 
         {resources.map(resource => (
           <div
-            key={resource.id}
+            key={resource._id}
             className="bg-gray-100 rounded-xl p-5 shadow-md border flex justify-between items-center hover:shadow-lg transition"
           >
 
@@ -51,7 +51,7 @@ export default function MyResources({ resources, onDelete, onEdit }: Props) {
               </button>
 
               <button
-                onClick={() => onDelete(resource.id)}
+                onClick={() => onDelete(resource._id)}
                 className="p-2 bg-red-500 text-white rounded-lg shadow hover:bg-red-600"
               >
                 <Trash2 size={16} />

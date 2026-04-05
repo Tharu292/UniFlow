@@ -4,7 +4,7 @@ import type { Resource } from '../types';
 interface Props {
   isOpen: boolean;
   onClose: () => void;
-  onAdd: (resource: Omit<Resource, 'id'>, file?: File) => void;
+  onAdd: (resource: Omit<Resource, '_id'>, file?: File) => void;
   editingResource?: Resource | null;
 }
 
@@ -14,7 +14,8 @@ export default function AddResourceModal({
   onAdd,
   editingResource
 }: Props) {
-  const [errors, setErrors] = useState<{ [key: string]: string }>({});
+  const [errors, setErrors] = useState<Record<string, string>>({});
+
   const [form, setForm] = useState({
     title: '',
     module: '',
@@ -25,19 +26,18 @@ export default function AddResourceModal({
     file: null as File | null,
   });
 
-  // Populate form when editing a resource
+  // ✅ Populate form when editing
   useEffect(() => {
     if (editingResource) {
       setForm({
-        title: editingResource.title || '',
-        module: editingResource.module || '',
-        semester: editingResource.semester || '',
-        year: editingResource.year || 'Year 1',
-        tags: editingResource.tags ? editingResource.tags.join(', ') : '',
-        description: editingResource.description || '',
-        file: null, // keep existing file unless user uploads new one
+        title: editingResource.title ?? '',
+        module: editingResource.module ?? '',
+        semester: editingResource.semester ?? '',
+        year: editingResource.year ?? 'Year 1',
+        tags: editingResource.tags?.join(', ') ?? '',
+        description: editingResource.description ?? '',
+        file: null,
       });
-      setErrors({});
     } else {
       setForm({
         title: '',
@@ -48,8 +48,9 @@ export default function AddResourceModal({
         description: '',
         file: null,
       });
-      setErrors({});
     }
+
+    setErrors({});
   }, [editingResource, isOpen]);
 
   if (!isOpen) return null;
@@ -57,51 +58,47 @@ export default function AddResourceModal({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
-    const newErrors: { [key: string]: string } = {};
+    const newErrors: Record<string, string> = {};
 
-    
     if (!form.title.trim()) newErrors.title = 'Title is required';
     else if (form.title.trim().length < 3)
-      newErrors.title = 'Title must be at least 3 characters';
+      newErrors.title = 'Minimum 3 characters required';
 
-    
     if (!form.module.trim()) newErrors.module = 'Module is required';
-
-    
     if (!form.semester.trim()) newErrors.semester = 'Semester is required';
-
-    
     if (!form.year) newErrors.year = 'Year is required';
 
-    
-    if (!form.tags.trim()) newErrors.tags = 'At least one tag is required';
+    if (!form.tags.trim()) newErrors.tags = 'At least one tag required';
 
-    
     if (!form.description.trim())
       newErrors.description = 'Description is required';
     else if (form.description.trim().length < 10)
-      newErrors.description = 'Description must be at least 10 characters';
+      newErrors.description = 'Minimum 10 characters required';
 
-    
     if (!editingResource && !form.file)
-      newErrors.file = 'Please select a file';
+      newErrors.file = 'File is required';
 
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
       return;
     }
 
-    const newResource: Omit<Resource, 'id'> = {
+    const newResource: Omit<Resource, '_id'> = {
       title: form.title.trim(),
       module: form.module.trim(),
       semester: form.semester.trim(),
       year: form.year,
       tags: form.tags.split(',').map((t) => t.trim()),
       description: form.description.trim(),
-      fileName: editingResource?.fileName || form.file?.name || '',
+      fileName:
+        editingResource?.fileName ||
+        form.file?.name ||
+        'uploaded-file',
+      fileUrl: editingResource?.fileUrl || '', // backend will update if new file
+      createdBy: editingResource?.createdBy || '',
     };
 
-    onAdd(newResource, form.file || undefined);
+    onAdd(newResource, form.file ?? undefined);
     onClose();
   };
 
@@ -113,12 +110,15 @@ export default function AddResourceModal({
         </h2>
 
         <form onSubmit={handleSubmit} className="space-y-4">
+
           {/* TITLE */}
           <div>
             <label className="text-sm font-medium">Title</label>
             <input
               value={form.title}
-              onChange={(e) => setForm({ ...form, title: e.target.value })}
+              onChange={(e) =>
+                setForm({ ...form, title: e.target.value })
+              }
               className="w-full border p-2 rounded-lg mt-1"
             />
             {errors.title && (
@@ -134,7 +134,10 @@ export default function AddResourceModal({
                 type="file"
                 className="w-full mt-1"
                 onChange={(e) =>
-                  setForm({ ...form, file: e.target.files?.[0] || null })
+                  setForm({
+                    ...form,
+                    file: e.target.files?.[0] ?? null,
+                  })
                 }
               />
               {errors.file && (
@@ -143,14 +146,17 @@ export default function AddResourceModal({
             </div>
           )}
 
-          {/* MODULE, SEMESTER, YEAR, TAGS */}
+          {/* GRID */}
           <div className="grid grid-cols-2 gap-3">
+
             <div>
               <input
                 placeholder="Module"
                 value={form.module}
-                onChange={(e) => setForm({ ...form, module: e.target.value })}
-                className="border p-2 rounded-lg"
+                onChange={(e) =>
+                  setForm({ ...form, module: e.target.value })
+                }
+                className="border p-2 rounded-lg w-full"
               />
               {errors.module && (
                 <p className="text-red-500 text-xs">{errors.module}</p>
@@ -158,14 +164,17 @@ export default function AddResourceModal({
             </div>
 
             <div>
-              <input
-                placeholder="Semester"
-                value={form.semester}
-                onChange={(e) =>
-                  setForm({ ...form, semester: e.target.value })
-                }
-                className="border p-2 rounded-lg"
-              />
+              <select
+  value={form.semester}
+  onChange={(e) =>
+    setForm({ ...form, semester: e.target.value })
+  }
+  className="border p-2 rounded-lg w-full"
+>
+  <option value="">Select Semester</option>
+  <option value="Semester 1">Semester 1</option>
+  <option value="Semester 2">Semester 2</option>
+</select>
               {errors.semester && (
                 <p className="text-red-500 text-xs">{errors.semester}</p>
               )}
@@ -174,7 +183,9 @@ export default function AddResourceModal({
             <div>
               <select
                 value={form.year}
-                onChange={(e) => setForm({ ...form, year: e.target.value })}
+                onChange={(e) =>
+                  setForm({ ...form, year: e.target.value })
+                }
                 className="border p-2 rounded-lg w-full"
               >
                 <option>Year 1</option>
@@ -191,8 +202,10 @@ export default function AddResourceModal({
               <input
                 placeholder="Tags (comma separated)"
                 value={form.tags}
-                onChange={(e) => setForm({ ...form, tags: e.target.value })}
-                className="border p-2 rounded-lg"
+                onChange={(e) =>
+                  setForm({ ...form, tags: e.target.value })
+                }
+                className="border p-2 rounded-lg w-full"
               />
               {errors.tags && (
                 <p className="text-red-500 text-xs">{errors.tags}</p>
@@ -206,16 +219,21 @@ export default function AddResourceModal({
               placeholder="Description"
               value={form.description}
               onChange={(e) =>
-                setForm({ ...form, description: e.target.value })
+                setForm({
+                  ...form,
+                  description: e.target.value,
+                })
               }
               className="w-full border p-2 rounded-lg"
             />
             {errors.description && (
-              <p className="text-red-500 text-xs">{errors.description}</p>
+              <p className="text-red-500 text-xs">
+                {errors.description}
+              </p>
             )}
           </div>
 
-          {/* ACTIONS */}
+          {/* BUTTONS */}
           <div className="flex gap-3">
             <button className="flex-1 bg-[#006591] text-white py-2 rounded-lg">
               {editingResource ? 'Update' : 'Upload'}
@@ -228,6 +246,7 @@ export default function AddResourceModal({
               Cancel
             </button>
           </div>
+
         </form>
       </div>
     </div>
