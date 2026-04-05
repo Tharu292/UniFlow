@@ -14,9 +14,10 @@ export interface Task {
 }
 
 export interface Resource {
-  id: string;
+  _id: string;
   title: string;
   fileName: string;
+  fileUrl:string;
   module?: string;
   semester?: string;
   year?: string;

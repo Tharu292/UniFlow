@@ -3,7 +3,7 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import connectDB from './config/db';
 import taskRoutes from './routes/tasks';
-//import resourceRoutes from './routes/resources';
+import resourceRoutes from './routes/resourceRoutes';
 import path from 'path';
 
 dotenv.config();
@@ -15,7 +15,7 @@ app.use(express.json());
 app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
 app.use('/api/tasks', taskRoutes);
-//app.use('/api/resources', resourceRoutes);
+app.use('/api/resources', resourceRoutes);
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`Server running on ${PORT}`));
