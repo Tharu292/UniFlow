@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom"; // ✅ ADD THIS
+import { useNavigate } from "react-router-dom"; // ADD THIS
 import api from "../api";
 import { toast } from "react-hot-toast";
 
@@ -14,7 +14,7 @@ const ChangePasswordOverlay = ({ email, otp, closeModal }: Props) => {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const navigate = useNavigate(); // ✅ ADD THIS
+  const navigate = useNavigate(); // ADD THIS
 
   const handleSubmit = async () => {
     if (!newPassword || !confirmPassword) {
@@ -38,9 +38,9 @@ const ChangePasswordOverlay = ({ email, otp, closeModal }: Props) => {
 
       closeModal();
 
-      // ✅ REDIRECT AFTER SUCCESS
+      // REDIRECT AFTER SUCCESS
       setTimeout(() => {
-        navigate("/profile"); // 🔥 CHANGE HERE IF YOUR ROUTE DIFFERENT
+        navigate("/profile"); // CHANGE HERE IF YOUR ROUTE DIFFERENT
       }, 1000);
 
     } catch (err: any) {

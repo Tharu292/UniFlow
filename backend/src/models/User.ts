@@ -15,7 +15,7 @@ const userSchema = new mongoose.Schema(
 
     password: { type: String, required: true },
     role: { type: String, enum: ["student", "admin"], default: "student" },
-    verified: { type: Boolean, default: false }, // ✅ email verification status
+    verified: { type: Boolean, default: false }, // email verification status
     address: { type: String, default: "" },
     faculty: { type: String, default: "" },
     semester: { type: String, default: "" },

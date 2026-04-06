@@ -40,18 +40,18 @@ const VerifyOTP = () => {
       setLoading(true);
 
       if (type === "change-password") {
-        // ✅ JUST OPEN PASSWORD FORM (NO API CALL HERE)
-        toast.success("OTP verified ✅");
+        // JUST OPEN PASSWORD FORM (NO API CALL HERE)
+        toast.success("OTP verified ");
         setShowChangePassword(true);
 
       } else {
-        // ✅ REGISTER FLOW
+        // REGISTER FLOW
         await api.post("/auth/verify-otp", {
           email,
           otp: otp.trim(),
         });
 
-        toast.success("Account verified 🎉");
+        toast.success("Account verified ");
 
         setTimeout(() => {
           navigate("/login");
@@ -81,11 +81,11 @@ const VerifyOTP = () => {
         await api.post("/auth/resend-otp", { email });
       }
 
-      toast.success("OTP resent 📩");
+      toast.success("OTP resent ");
       setTimeLeft(60);
 
     } catch {
-      toast.error("Failed ❌");
+      toast.error("Failed ");
     }
   };
 
@@ -117,7 +117,7 @@ const VerifyOTP = () => {
             </>
           ) : (
             <span className="text-red-500 font-semibold">
-              OTP expired ⚠️
+              OTP expired 
             </span>
           )}
         </p>
@@ -144,11 +144,11 @@ const VerifyOTP = () => {
 
       </div>
 
-      {/* ✅ CHANGE PASSWORD STEP */}
+      {/* CHANGE PASSWORD STEP */}
       {showChangePassword && (
         <ChangePasswordOverlay
           email={email}
-          otp={otp.trim()} // 🔥 IMPORTANT FIX
+          otp={otp.trim()} // IMPORTANT FIX
           closeModal={() => setShowChangePassword(false)}
         />
       )}

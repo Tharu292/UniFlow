@@ -23,7 +23,7 @@ const ForgotPassword = () => {
     e.preventDefault();
     setError("");
 
-    // ✅ SLIIT email validation
+    // SLIIT email validation
     if (!/^it\d{8}@my\.sliit\.lk$/.test(email)) {
       const msg = "Please enter a valid SLIIT email (itxxxxxxx@my.sliit.lk)";
       setError(msg);
@@ -79,7 +79,7 @@ const ForgotPassword = () => {
           </div>
         )}
 
-        {/* ❌ Error Message */}
+        {/* Error Message */}
         {error && (
           <p className="mt-4 text-center text-red-500">
             {error}

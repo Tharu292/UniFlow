@@ -17,9 +17,7 @@ import {
 
 const router = express.Router();
 
-// ==========================
 // AUTH ROUTES
-// ==========================
 router.post("/register", register);
 router.post("/verify-otp", verifyOTP);
 router.post("/resend-otp", resendOTP);

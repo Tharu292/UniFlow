@@ -88,7 +88,7 @@ export default function Resources() {
     );
   });
 
-  // ✅ DOWNLOAD HANDLER (WORKS CROSS-ORIGIN)
+  //  DOWNLOAD HANDLER (WORKS CROSS-ORIGIN)
   const handleDownload = async (url: string, fallbackName?: string) => {
   try {
     const res = await fetch(url);
