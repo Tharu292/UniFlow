@@ -9,7 +9,7 @@ import RoleSelection from "./pages/RoleSelection";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Profile from "./pages/Profile";
-//import StudentDashboard from "./pages/StudentDashboard";
+import StudentDashboard from "./pages/StudentDashboard";
 import VerifyEmail from "./pages/VerifyEmail";
 import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
@@ -46,7 +46,7 @@ function App() {
             <Route path="/reset-password" element={<ResetPassword />} />
 
             {/* Auth-protected routes */}
-            {/*<Route path="/student-dashboard" element={<ProtectedRoute><StudentDashboard /></ProtectedRoute>} />*/}
+            <Route path="/admin-dashboard" element={<ProtectedRoute><StudentDashboard /></ProtectedRoute>} />
             <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
             <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
 

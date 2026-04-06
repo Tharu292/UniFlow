@@ -25,11 +25,10 @@ const Login = () => {
       return;
     }
 
-    // ✅ Admin email validation
     if (role === "admin" && email !== "admin123@gmail.com") {
-      setError("Admin must login with a valid email.");
-      return;
-    }
+  setError("Admin must login with a valid email.");
+  return;
+}
 
     try {
       // Call login API

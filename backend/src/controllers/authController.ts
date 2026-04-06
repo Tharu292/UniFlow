@@ -34,7 +34,8 @@ export const register = async (req: Request, res: Response) => {
       year,
     } = req.body;
 
-    if (!isValidSLIITEmail(email)) {
+    // ❗ ONLY validate SLIIT email for STUDENTS
+    if (role === "student" && !isValidSLIITEmail(email)) {
       return res.status(400).json({ message: "Only SLIIT emails allowed" });
     }
 
@@ -47,6 +48,30 @@ export const register = async (req: Request, res: Response) => {
       return res.status(400).json({ message: "User already exists" });
     }
 
+    /* ===========================
+       ✅ ADMIN → DIRECT CREATE
+    =========================== */
+    if (role === "admin") {
+      const hashedPassword = await bcrypt.hash(password, 10);
+
+      const user = await User.create({
+        firstName,
+        lastName,
+        email,
+        password: hashedPassword,
+        role: "admin",
+        verified: true, // ✅ NO OTP
+      });
+
+      return res.json({
+        message: "Admin registered successfully",
+        user,
+      });
+    }
+
+    /* ===========================
+       STUDENT → OTP FLOW
+    =========================== */
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
 
     otpStore[email] = {
@@ -58,6 +83,7 @@ export const register = async (req: Request, res: Response) => {
     await sendEmail(email, "Your OTP Code", `Your OTP is: ${otp}`);
 
     res.json({ message: "OTP sent to your email" });
+
   } catch (error: any) {
     console.error("🔥 Register Error:", error);
     res.status(500).json({ message: error.message });
