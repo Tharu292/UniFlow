@@ -19,7 +19,7 @@ const run = async () => {
       verified: true,
     });
 
-    console.log("✅ Admin user created");
+    console.log("Admin user created");
 
   } catch (err) {
     console.error(err);

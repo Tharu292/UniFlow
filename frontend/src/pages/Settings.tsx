@@ -26,9 +26,7 @@ export default function Settings() {
 
   const [loading, setLoading] = useState(false);
 
-  /* =============================
-     🔐 REQUEST OTP (CHANGE PASSWORD)
-  ============================== */
+  /*  REQUEST OTP (CHANGE PASSWORD) */
   const handleOpenChangePassword = async () => {
     try {
       setLoading(true);
@@ -45,13 +43,13 @@ export default function Settings() {
         }
       );
 
-      toast.success("OTP sent to your email 📩");
+      toast.success("OTP sent to your email ");
 
-      // ✅ Navigate to OTP page
+      // Navigate to OTP page
       navigate("/verify-otp", {
         state: {
           email: res.data.email,
-          type: "change-password", // 🔥 important
+          type: "change-password", //  important
         },
       });
 
@@ -62,9 +60,7 @@ export default function Settings() {
     }
   };
 
-  /* =============================
-     🚪 LOGOUT
-  ============================== */
+  // LOGOUT 
   const handleLogout = () => {
     localStorage.clear();
     setUser(null);
@@ -104,7 +100,7 @@ export default function Settings() {
       {/* CONTENT */}
       <div className="max-w-5xl mx-auto px-6 py-6 space-y-6">
 
-        {/* 🌙 DARK MODE */}
+        {/* DARK MODE */}
         <div className="bg-white dark:bg-gray-800 p-5 rounded-xl shadow flex justify-between items-center">
           <div className="flex items-center gap-3">
             {dark ? <Moon /> : <Sun />}
@@ -124,7 +120,7 @@ export default function Settings() {
           </button>
         </div>
 
-        {/* 🔐 CHANGE PASSWORD */}
+        {/* CHANGE PASSWORD */}
         <div className="bg-white dark:bg-gray-800 p-5 rounded-xl shadow flex justify-between items-center">
           <div className="flex items-center gap-3">
             <Lock />
@@ -149,7 +145,7 @@ export default function Settings() {
           </button>
         </div>
 
-        {/* 📊 LOGIN ACTIVITY */}
+        {/* LOGIN ACTIVITY */}
         <div className="bg-white dark:bg-gray-800 p-5 rounded-xl shadow">
           <div className="flex items-center gap-2 mb-4">
             <Activity size={18} />
@@ -181,7 +177,7 @@ export default function Settings() {
           </div>
         </div>
 
-        {/* 🚪 LOGOUT */}
+        {/* LOGOUT */}
         <div className="bg-white dark:bg-gray-800 p-5 rounded-xl shadow flex justify-between items-center">
           <div className="flex items-center gap-3">
             <LogOut />

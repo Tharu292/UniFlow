@@ -33,20 +33,20 @@ const Register = () => {
     e.preventDefault();
     setError("");
 
-    // ✅ Password validation
+    // Password validation
     if (form.password !== form.confirmPassword) {
       setError("Passwords do not match");
       return;
     }
 
-    // ✅ SLIIT email validation
+    // SLIIT email validation
     const sliitEmailRegex = /^it\d{8}@my\.sliit\.lk$/;
     if (!sliitEmailRegex.test(form.email)) {
       setError("SLIIT email must be itxxxxxxxx@my.sliit.lk");
       return;
     }
 
-    // ✅ Contact validation
+    // Contact validation
     if (!/^0\d{9}$/.test(form.contactNumber)) {
       setError("Contact number must be 10 digits starting with 0");
       return;
@@ -56,14 +56,14 @@ const Register = () => {
       await api.post("/auth/register", { ...form, role });
 
       // SUCCESS
-      toast.success("OTP sent to your email 📩");
+      toast.success("OTP sent to your email ");
 
       // navigate to verify page
       navigate("/verify-otp", { state: { email: form.email } });
 
     } catch (err: any) {
       setError(err.response?.data?.message || "Registration failed");
-      toast.error("Registration failed ❌");
+      toast.error("Registration failed ");
     }
   };
 

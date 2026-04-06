@@ -35,7 +35,7 @@ const Profile = () => {
         year: user.year || "",
       };
 
-      console.log("🔄 Setting form data:", newForm);
+      console.log("Setting form data:", newForm);
 
       setForm(newForm);
     }
@@ -74,10 +74,10 @@ const Profile = () => {
 
       setUser(res.data);
       localStorage.setItem("user", JSON.stringify(res.data));
-      toast.success("Profile updated successfully ✅");
+      toast.success("Profile updated successfully ");
       setIsEditing(false);
     } catch (err: any) {
-      toast.error(err.response?.data?.message || "Update failed ❌");
+      toast.error(err.response?.data?.message || "Update failed ");
     }
   };
 
@@ -104,9 +104,9 @@ const Profile = () => {
 
   if (!user) return <p className="text-center mt-10">Loading...</p>;
 
-  const faculties = ["Faculty of Computing", "Faculty of Engineering", "Faculty of Business"];
-  const semesters = ["semester 1", "semester 2"];
-  const years = ["year 1", "year 2", "year 3", "year 4"];
+  const faculties = ["Computing", "Engineering", "Business"];
+  const semesters = ["Semester 1", "Semester 2"];
+  const years = ["1", "2", "3", "4"];
 
   return (
     <div className="min-h-screen bg-gray-50">

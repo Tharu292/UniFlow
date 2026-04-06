@@ -6,18 +6,14 @@ import { isValidSLIITEmail } from "../utils/validateEmail";
 import crypto from "crypto";
 import { sendEmail } from "../utils/sendEmail";
 
-/* ===========================
-   TEMP STORAGE
-=========================== */
+/* TEMP STORAGE*/
 let otpStore: { [key: string]: any } = {};
 let resetTokens: { [key: string]: string } = {};
 let changePasswordOTPStore: {
   [email: string]: { otp: string; expiresAt: number };
 } = {};
 
-/* ===========================
-   REGISTER → SEND OTP
-=========================== */
+/*  REGISTER → SEND OTP*/
 export const register = async (req: Request, res: Response) => {
   try {
     const {
@@ -34,7 +30,7 @@ export const register = async (req: Request, res: Response) => {
       year,
     } = req.body;
 
-    // ❗ ONLY validate SLIIT email for STUDENTS
+    // ONLY validate SLIIT email for STUDENTS
     if (role === "student" && !isValidSLIITEmail(email)) {
       return res.status(400).json({ message: "Only SLIIT emails allowed" });
     }
@@ -48,9 +44,7 @@ export const register = async (req: Request, res: Response) => {
       return res.status(400).json({ message: "User already exists" });
     }
 
-    /* ===========================
-       ✅ ADMIN → DIRECT CREATE
-    =========================== */
+    /* ADMIN → DIRECT CREATE*/
     if (role === "admin") {
       const hashedPassword = await bcrypt.hash(password, 10);
 
@@ -60,7 +54,7 @@ export const register = async (req: Request, res: Response) => {
         email,
         password: hashedPassword,
         role: "admin",
-        verified: true, // ✅ NO OTP
+        verified: true, //  NO OTP
       });
 
       return res.json({
@@ -69,9 +63,7 @@ export const register = async (req: Request, res: Response) => {
       });
     }
 
-    /* ===========================
-       STUDENT → OTP FLOW
-    =========================== */
+    /* STUDENT → OTP FLOW*/
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
 
     otpStore[email] = {
@@ -85,14 +77,12 @@ export const register = async (req: Request, res: Response) => {
     res.json({ message: "OTP sent to your email" });
 
   } catch (error: any) {
-    console.error("🔥 Register Error:", error);
+    console.error(" Register Error:", error);
     res.status(500).json({ message: error.message });
   }
 };
 
-/* ===========================
-   VERIFY OTP → CREATE USER
-=========================== */
+/* VERIFY OTP → CREATE USER */
 export const verifyOTP = async (req: Request, res: Response) => {
   try {
     const { email, otp } = req.body;
@@ -102,7 +92,7 @@ export const verifyOTP = async (req: Request, res: Response) => {
       return res.status(400).json({ message: "No OTP request found" });
     }
 
-    // ✅ CHECK EXPIRY
+    //  CHECK EXPIRY
     if (record.expiresAt < Date.now()) {
       delete otpStore[email];
       return res.status(400).json({ message: "OTP expired" });
@@ -127,14 +117,12 @@ export const verifyOTP = async (req: Request, res: Response) => {
 
     res.json({ message: "Registration successful" });
   } catch (error: any) {
-    console.error("🔥 OTP Verify Error:", error);
+    console.error("OTP Verify Error:", error);
     res.status(500).json({ message: error.message });
   }
 };
 
-/* ===========================
-   LOGIN
-=========================== */
+/* LOGIN */
 export const login = async (req: Request, res: Response) => {
   try {
     const { email, password } = req.body;
@@ -159,14 +147,13 @@ export const login = async (req: Request, res: Response) => {
 
     res.json({ token, user });
   } catch (error: any) {
-    console.error("🔥 Login Error:", error);
+    console.error("Login Error:", error);
     res.status(500).json({ message: error.message });
   }
 };
 
-/* ===========================
-   FORGOT PASSWORD
-=========================== */
+/*FORGOT PASSWORD*/
+
 export const forgotPassword = async (req: Request, res: Response) => {
   try {
     const { email } = req.body;
@@ -184,14 +171,12 @@ export const forgotPassword = async (req: Request, res: Response) => {
 
     res.json({ message: "Reset link sent" });
   } catch (error: any) {
-    console.error("🔥 Forgot Error:", error);
+    console.error(" Forgot Error:", error);
     res.status(500).json({ message: error.message });
   }
 };
 
-/* ===========================
-   RESET PASSWORD
-=========================== */
+/* RESET PASSWORD */
 export const resetPassword = async (req: Request, res: Response) => {
   try {
     const { token, password } = req.body;
@@ -208,14 +193,12 @@ export const resetPassword = async (req: Request, res: Response) => {
 
     res.json({ message: "Password reset successful" });
   } catch (error: any) {
-    console.error("🔥 Reset Error:", error);
+    console.error("Reset Error:", error);
     res.status(500).json({ message: error.message });
   }
 };
 
-/* ===========================
-   RESEND OTP
-=========================== */
+/*RESEND OTP*/
 export const resendOTP = async (req: Request, res: Response) => {
   try {
     const { email } = req.body;
@@ -238,9 +221,7 @@ export const resendOTP = async (req: Request, res: Response) => {
   }
 };
 
-/* ===========================
-   REQUEST CHANGE PASSWORD OTP
-=========================== */
+/* REQUEST CHANGE PASSWORD OTP*/
 export const requestChangePasswordOTP = async (
   req: Request,
   res: Response
@@ -268,9 +249,7 @@ export const requestChangePasswordOTP = async (
   }
 };
 
-/* ===========================
-   VERIFY CHANGE PASSWORD OTP
-=========================== */
+/* VERIFY CHANGE PASSWORD OTP*/
 export const verifyChangePasswordOTP = async (
   req: Request,
   res: Response
@@ -287,13 +266,13 @@ export const verifyChangePasswordOTP = async (
       return res.status(400).json({ message: "No OTP request found" });
     }
 
-    // ✅ EXPIRE CHECK
+    //  EXPIRE CHECK
     if (record.expiresAt < Date.now()) {
       delete changePasswordOTPStore[email];
       return res.status(400).json({ message: "OTP expired" });
     }
 
-    // ✅ TRIM FIX (IMPORTANT)
+    // TRIM FIX (IMPORTANT)
     const cleanOtp = otp.trim();
 
     if (record.otp !== cleanOtp) {
@@ -308,13 +287,11 @@ export const verifyChangePasswordOTP = async (
 
     res.json({ message: "Password updated successfully" });
   } catch (err: any) {
-    console.error("🔥 Verify Change Password OTP Error:", err.message);
+    console.error(" Verify Change Password OTP Error:", err.message);
     res.status(500).json({ message: err.message });
   }
 };
-/* ===========================
-   CHANGE PASSWORD (DIRECT)
-=========================== */
+/*CHANGE PASSWORD (DIRECT) */
 export const changePassword = async (req: Request, res: Response) => {
   try {
     const userId = (req as any).user.id;

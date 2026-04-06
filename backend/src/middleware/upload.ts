@@ -1,7 +1,7 @@
 import multer from 'multer';
 import { CloudinaryStorage } from 'multer-storage-cloudinary';
 import cloudinary from '../config/cloudinary';
-import { Request } from 'express'; // ✅ import Request for typing
+import { Request } from 'express'; // import Request for typing
 import { access } from 'node:fs';
 
 const storage = new CloudinaryStorage({

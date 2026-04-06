@@ -19,12 +19,12 @@ const Login = () => {
     e.preventDefault();
     setError("");
 
-    // ✅ Student email format validation
+    // Student email format validation
     if (role === "student" && !/^it\d{8}@my\.sliit\.lk$/.test(email)) {
       setError("Students must login with a valid SLIIT email (itxxxxxxx@my.sliit.lk)");
       return;
     }
-
+   // Admin email format validation
     if (role === "admin" && email !== "admin123@gmail.com") {
   setError("Admin must login with a valid email.");
   return;
@@ -39,10 +39,10 @@ const Login = () => {
       localStorage.setItem("token", res.data.token);
       localStorage.setItem("user", JSON.stringify(res.data.user));
 
-      // ✅ Show toast immediately on Login page
+      // Show toast immediately on Login page
       toast.success("Login successful!");
 
-      // ✅ Delay navigation slightly so toast is visible
+      // Delay navigation slightly so toast is visible
       setTimeout(() => {
         if (res.data.user.role === "admin") navigate("/admin-dashboard");
         else navigate("/dashboard");

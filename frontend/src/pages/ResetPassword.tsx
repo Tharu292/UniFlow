@@ -7,7 +7,7 @@ const ResetPassword = () => {
   const location = useLocation();
   const navigate = useNavigate();
 
-  // ✅ Get token from query params
+  // Get token from query params
   const token = new URLSearchParams(location.search).get("token");
 
   const [password, setPassword] = useState("");
@@ -18,7 +18,7 @@ const ResetPassword = () => {
     e.preventDefault();
     setError("");
 
-    // ✅ Basic validation
+    //  Basic validation
     if (!password || !confirmPassword) {
       const msg = "Please enter all fields";
       setError(msg);
@@ -33,7 +33,7 @@ const ResetPassword = () => {
     }
 
     try {
-      // ✅ API call with token
+      // API call with token
       await api.post("/auth/reset-password", { token, password });
 
       toast.success("Password reset successful!");
