@@ -1,19 +1,33 @@
-import express from 'express';
+import express from "express";
 import {
-  createResource,
   getResources,
+  getStudentResources,
+  getResourceById,
+  createResource,
   updateResource,
-  deleteResource
-} from '../controllers/resourceController';
-
-import upload from '../middleware/upload';
-import { validateResource } from '../middleware/validation';
+  deleteResource,
+  updateResourceStatus,
+  incrementDownloads,
+  getResourceStats,
+} from "../controllers/resourceController";
 
 const router = express.Router();
 
-router.get('/', getResources);
-router.post('/', upload.single('file'), validateResource, createResource);
-router.put('/:id', validateResource, updateResource);
-router.delete('/:id', deleteResource);
+// Statistics route (MUST be before parameterized routes)
+router.get("/stats", getResourceStats);
+
+// Student routes
+router.get("/student", getStudentResources);
+
+// Download counter
+router.patch("/:id/download", incrementDownloads);
+
+// Admin routes
+router.get("/admin", getResources);
+router.get("/:id", getResourceById);
+router.post("/", createResource);
+router.put("/:id", updateResource);
+router.delete("/:id", deleteResource);
+router.patch("/:id/status", updateResourceStatus);
 
 export default router;
