@@ -83,28 +83,22 @@ export default function Dashboard() {
   }));
 
   // CRUD handlers (unchanged)
-  const addTask = async (newTaskData: Omit<Task, 'id'>) => {
-    try {
-      const res = await taskAPI.create(newTaskData);
+ const addTask = async (newTaskData: Omit<Task, 'id'>) => {
+  try {
+    const res = await taskAPI.create(newTaskData);
+    const createdTask = res.data; // assuming backend returns the task directly now
 
-      const created = { ...res.data.task, id: res.data.task._id };
-      setTasks(prev => [...prev, created]);
+    const newTask = {
+      ...createdTask,
+      id: createdTask._id || createdTask.id
+    };
 
-      //Success Toast
-      toast.success('Task created successfully');
-
-      //Backend Warning
-      if (res.data.warning) {
-        toast(res.data.warning, { icon: '⚠️' });
-      }
-
-    } catch (err: any) {
-      console.error(err);
-
-      //Error Toast (show backend message if exists)
-      toast.error(err?.response?.data?.message || 'Failed to create task');
-    }
-  };
+    setTasks(prev => [...prev, newTask]);
+    toast.success('Task created successfully');
+  } catch (err: any) {
+    toast.error(err?.response?.data?.message || 'Failed to create task');
+  }
+};
 
   const updateTask = async (id: string, updatedData: Omit<Task, 'id'>) => {
     try {

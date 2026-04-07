@@ -1,10 +1,13 @@
-// tasks.ts
 import { Router } from 'express';
 import { getTasks, createTask, updateTask, deleteTask } from '../controllers/taskController';
+import { verifyToken } from '../middleware/authMiddleware'; // ✅ ADD THIS
 
 const router = Router();
-router.get('/', getTasks);
-router.post('/', createTask);
-router.put('/:id', updateTask);
-router.delete('/:id', deleteTask);
+
+// ✅ PROTECT ALL ROUTES
+router.get('/', verifyToken, getTasks);
+router.post('/', verifyToken, createTask);
+router.put('/:id', verifyToken, updateTask);
+router.delete('/:id', verifyToken, deleteTask);
+
 export default router;

@@ -1,113 +1,71 @@
-import { Request, Response } from 'express';
+// backend/src/controllers/taskController.ts
+import { Response } from 'express';
 import Task from '../models/Task';
+import { AuthRequest } from '../types/express';
+import mongoose from 'mongoose';
 
-export const getTasks = async (req: Request, res: Response) => {
-  const tasks = await Task.find().sort({ dueDate: 1 });
-  res.json(tasks);
-};
-
-export const createTask = async (req: Request, res: Response) => {
+export const getTasks = async (req: AuthRequest, res: Response) => {
   try {
-    const { title, type, dueDate, priority, description, resourceLink } = req.body;
+    if (!req.user?.id) {
+  return res.status(401).json({ message: "Unauthorized" });
+}
+    const tasks = await Task.find({
+      userId: new mongoose.Types.ObjectId(req.user!.id)
+    }).sort({ dueDate: 1 });
 
-    //Required
-    if (!title || !type || !dueDate || !priority) {
-      return res.status(400).json({ message: 'All required fields must be filled' });
-    }
-
-    //Title length
-    if (title.length < 3 || title.length > 100) {
-      return res.status(400).json({ message: 'Title must be between 3 and 100 characters' });
-    }
-
-    //Due date validation
-    if (new Date(dueDate) < new Date()) {
-      return res.status(400).json({ message: 'Due date cannot be in the past' });
-    }
-
-    //Priority validation
-    const validPriorities = ['low', 'medium', 'high'];
-    if (!validPriorities.includes(priority)) {
-      return res.status(400).json({ message: 'Invalid priority value' });
-    }
-
-    //Description limit
-    if (description && description.length > 500) {
-      return res.status(400).json({ message: 'Description too long (max 500 characters)' });
-    }
-
-    //URL validation
-    if (resourceLink) {
-      try {
-        new URL(resourceLink);
-      } catch {
-        return res.status(400).json({ message: 'Invalid resource link' });
-      }
-    }
-
-    //Duplicate prevention
-    const existing = await Task.findOne({ title, dueDate });
-    if (existing) {
-      return res.status(400).json({ message: 'Task with same title and date already exists' });
-    }
-
-    //If there are too many tasks same day
-    const sameDayTasks = await Task.countDocuments({
-      dueDate: {
-        $gte: new Date(new Date(dueDate).setHours(0, 0, 0, 0)),
-        $lte: new Date(new Date(dueDate).setHours(23, 59, 59, 999)),
-      },
-    });
-
-    const task = await Task.create(req.body);
-
-    return res.status(201).json({
-      task,
-      warning: sameDayTasks >= 5 ? 'Too many tasks scheduled on this day' : null,
-    });
-
-  } catch (error) {
-    res.status(500).json({ message: 'Server error' });
+    res.json(tasks);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
   }
 };
 
-export const updateTask = async (req: Request, res: Response) => {
+export const createTask = async (req: AuthRequest, res: Response) => {
   try {
-    const { title, type, dueDate, priority, description, resourceLink } = req.body;
+    const task = await Task.create({
+      ...req.body,
+      userId: new mongoose.Types.ObjectId(req.user!.id)
+    });
 
-    if (!title || !type || !dueDate || !priority) {
-      return res.status(400).json({ message: 'All required fields must be filled' });
+    res.status(201).json(task);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+export const updateTask = async (req: AuthRequest, res: Response) => {
+  try {
+    const task = await Task.findOneAndUpdate(
+      {
+        _id: req.params.id,
+        userId: new mongoose.Types.ObjectId(req.user!.id)
+      },
+      req.body,
+      { new: true }
+    );
+
+    if (!task) {
+      return res.status(404).json({ message: 'Task not found or unauthorized' });
     }
-
-    if (title.length < 3 || title.length > 100) {
-      return res.status(400).json({ message: 'Title must be between 3 and 100 characters' });
-    }
-
-    if (new Date(dueDate) < new Date()) {
-      return res.status(400).json({ message: 'Due date cannot be in the past' });
-    }
-
-    if (description && description.length > 500) {
-      return res.status(400).json({ message: 'Description too long' });
-    }
-
-    if (resourceLink) {
-      try {
-        new URL(resourceLink);
-      } catch {
-        return res.status(400).json({ message: 'Invalid URL' });
-      }
-    }
-
-    const task = await Task.findByIdAndUpdate(req.params.id, req.body, { new: true });
 
     res.json(task);
-  } catch {
-    res.status(500).json({ message: 'Update failed' });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
   }
 };
 
-export const deleteTask = async (req: Request, res: Response) => {
-  await Task.findByIdAndDelete(req.params.id);
-  res.json({ message: 'Deleted' });
+export const deleteTask = async (req: AuthRequest, res: Response) => {
+  try {
+    const task = await Task.findOneAndDelete({
+      _id: req.params.id,
+      userId: new mongoose.Types.ObjectId(req.user!.id)
+    });
+
+    if (!task) {
+      return res.status(404).json({ message: 'Task not found or unauthorized' });
+    }
+
+    res.json({ message: 'Task deleted successfully' });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
 };
