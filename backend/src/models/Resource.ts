@@ -1,34 +1,136 @@
-// backend/src/models/Resource.ts
-import mongoose, { Document, Schema } from 'mongoose';
+import mongoose, { Schema, Document } from "mongoose";
 
 export interface IResource extends Document {
   title: string;
-  fileUrl: string;  
-  fileName: string;         // We'll store the path like "/uploads/filename.pdf"
-  module?: string;
-  semester?: string;
-  year?: string;
+  description: string;
+
+  // Resource type
+  type: "PDF" | "Video" | "Image" | "Link";
+
+  // File OR Link
+  fileUrl?: string;
+  fileName?: string;
+  url?: string;
+
+  fileSize?: string;
+  subject: string;
+
+  uploadedBy: string;
+  uploadedById?: mongoose.Types.ObjectId;
+
+  downloads: number;
+  status: "pending" | "approved" | "rejected";
+
   tags: string[];
-  description?: string;
-  createdBy: mongoose.Types.ObjectId;
+
+  // Target Audience
+  targetAudience: "All Students" | "By Faculty" | "By Semester" | "By Year";
+  targetFaculty?: string;
+  targetSemester?: string;
+  targetYear?: string;
+
+  createdAt: Date;
+  updatedAt: Date;
 }
 
-const resourceSchema = new mongoose.Schema<IResource>({
-  title: { type: String, required: true, trim: true },
-  fileUrl: { type: String, required: true },
-  fileName: { type: String, required: true },
-  module: { type: String, trim: true },
-  semester: { type: String, trim: true },
-  year: { type: String, trim: true },
-  tags: [{ type: String, trim: true }],
-  description: { type: String, trim: true },
-  createdBy: { 
-    type: mongoose.Schema.Types.ObjectId, 
-    ref: 'User', 
-    required: true 
-  }
-}, { 
-  timestamps: true 
-});
+const ResourceSchema = new Schema<IResource>(
+  {
+    title: {
+      type: String,
+      required: true,
+      trim: true,
+    },
 
-export default mongoose.model<IResource>('Resource', resourceSchema);
+    description: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+
+    type: {
+      type: String,
+      enum: ["PDF", "Video", "Image", "Link"],
+      required: true,
+    },
+
+    // 🔥 SUPPORT BOTH FILE + LINK
+    fileUrl: {
+      type: String,
+    },
+
+    fileName: {
+      type: String,
+    },
+
+    url: {
+      type: String,
+      trim: true,
+    },
+
+    fileSize: {
+      type: String,
+      default: "",
+    },
+
+    subject: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+
+    uploadedBy: {
+      type: String,
+      default: "User",
+    },
+
+    uploadedById: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+    },
+
+    downloads: {
+      type: Number,
+      default: 0,
+    },
+
+    status: {
+      type: String,
+      enum: ["pending", "approved", "rejected"],
+      default: "approved", // 👈 change to pending if you want approval flow
+    },
+
+    tags: [
+      {
+        type: String,
+        trim: true,
+      },
+    ],
+
+    targetAudience: {
+      type: String,
+      enum: ["All Students", "By Faculty", "By Semester", "By Year"],
+      required: true,
+    },
+
+    targetFaculty: {
+      type: String,
+    },
+
+    targetSemester: {
+      type: String,
+    },
+
+    targetYear: {
+      type: String,
+    },
+  },
+  {
+    timestamps: true,
+  }
+);
+
+// Indexes
+ResourceSchema.index({ status: 1, createdAt: -1 });
+ResourceSchema.index({ title: "text", description: "text", subject: "text" });
+
+export default mongoose.model<IResource>("Resource", ResourceSchema);
