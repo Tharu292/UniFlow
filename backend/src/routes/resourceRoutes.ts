@@ -48,6 +48,6 @@ router.delete("/:id", verifyToken, deleteResource);
 router.patch("/:id/download", incrementDownloads);
 
 // ✅ STATUS UPDATE (Admin use)
-router.patch("/:id/status", updateResourceStatus);
+//router.patch("/:id/status", updateResourceStatus);
 
 export default router;

@@ -44,7 +44,7 @@ const Login = () => {
 
       // Delay navigation slightly so toast is visible
       setTimeout(() => {
-        if (res.data.user.role === "admin") navigate("/admin-dashboard");
+        if (res.data.user.role === "admin") navigate("/admin/dashboard");
         else navigate("/dashboard");
       }, 500); // 0.5 second delay is enough for practical UX
 

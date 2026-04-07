@@ -1,3 +1,4 @@
+// frontend/src/components/MyResourceModal.tsx  (or MyResources.tsx)
 import { Trash2, Edit } from 'lucide-react';
 import type { Resource } from '../types';
 
@@ -9,65 +10,62 @@ interface Props {
 
 export default function MyResources({ resources, onDelete, onEdit }: Props) {
   return (
-    <div className="max-w-6xl mx-auto px-6 py-6">
+    <div className="max-w-6xl mx-auto px-6 py-8">
+      <h1 className="text-3xl font-semibold mb-8">My Resources</h1>
 
-      <h1 className="text-2xl font-semibold mb-6">My Resources</h1>
-
-      <div className="space-y-4">
-
-        {resources.map(resource => (
+      <div className="space-y-6">
+        {resources.map((resource) => (
           <div
             key={resource._id}
-            className="bg-gray-100 rounded-xl p-5 shadow-md border flex justify-between items-center hover:shadow-lg transition"
+            className="bg-white rounded-2xl p-6 shadow border flex justify-between items-start hover:shadow-lg transition"
           >
-
-            {/* LEFT CONTENT */}
             <div className="flex-1">
+              <h2 className="font-semibold text-xl mb-2">{resource.title}</h2>
+              <p className="text-gray-600 mb-4">{resource.description}</p>
 
-              <h2 className="font-semibold text-lg mb-1">
-                {resource.title}
-              </h2>
-
-              <p className="text-sm text-gray-500 mb-2">
-                {resource.description}
-              </p>
-
-              <div className="flex gap-3 text-xs text-gray-600">
-                <span>{resource.module}</span>
-                <span>{resource.semester}</span>
-                <span>{resource.year}</span>
+              <div className="flex flex-wrap gap-3 text-sm">
+                <span className="bg-gray-100 px-4 py-1 rounded-full">{resource.subject}</span>
+                {resource.targetSemester && (
+                  <span className="bg-gray-100 px-4 py-1 rounded-full">{resource.targetSemester}</span>
+                )}
+                {resource.targetYear && (
+                  <span className="bg-gray-100 px-4 py-1 rounded-full">Year {resource.targetYear}</span>
+                )}
               </div>
 
+              <div className="mt-3 flex gap-2">
+                {resource.tags?.map((tag, i) => (
+                  <span key={i} className="text-xs bg-blue-50 text-blue-700 px-3 py-1 rounded-full">
+                    {tag}
+                  </span>
+                ))}
+              </div>
             </div>
 
-            {/* ACTIONS */}
-            <div className="flex gap-2 ml-4">
-
+            <div className="flex gap-3 ml-6">
               <button
                 onClick={() => onEdit(resource)}
-                className="p-2 bg-white rounded-lg shadow hover:bg-gray-200"
+                className="p-3 bg-gray-100 hover:bg-gray-200 rounded-xl transition"
+                title="Edit"
               >
-                <Edit size={16} />
+                <Edit size={20} />
               </button>
-
               <button
                 onClick={() => onDelete(resource._id)}
-                className="p-2 bg-red-500 text-white rounded-lg shadow hover:bg-red-600"
+                className="p-3 bg-red-100 hover:bg-red-200 text-red-600 rounded-xl transition"
+                title="Delete"
               >
-                <Trash2 size={16} />
+                <Trash2 size={20} />
               </button>
-
             </div>
-
           </div>
         ))}
 
         {resources.length === 0 && (
-          <p className="text-center text-gray-400 mt-10">
-            You haven’t uploaded any resources yet!
-          </p>
+          <div className="text-center py-16">
+            <p className="text-gray-400 text-lg">You haven’t uploaded any resources yet!</p>
+          </div>
         )}
-
       </div>
     </div>
   );

@@ -15,50 +15,76 @@ const toObjectId = (id: string | string[] | undefined): mongoose.Types.ObjectId 
 
 
 // CREATE Resource
+// CREATE Resource (student or admin)
+// backend/src/controllers/resourceController.ts
+
+// In resourceController.ts → createResource function
+
 export const createResource = async (req: AuthRequest, res: Response) => {
   try {
-    if (!req.file) {
-      return res.status(400).json({ message: 'No file uploaded' });
-    }
+    const file = req.file as any;
 
-    const file = req.file as Express.Multer.File & { secure_url?: string; path?: string };
-
-    // Robust tags handling
     let tags: string[] = [];
-    const tagsRaw = req.body.tags;
-
-    if (tagsRaw) {
-      if (Array.isArray(tagsRaw)) {
-        tags = tagsRaw.map(t => t.trim()).filter(Boolean);
-      } else if (typeof tagsRaw === 'string') {
-        tags = tagsRaw.split(',').map(t => t.trim()).filter(Boolean);
-      }
+    if (req.body.tags) {
+      tags = typeof req.body.tags === 'string' 
+        ? req.body.tags.split(',').map((t: string) => t.trim()).filter(Boolean)
+        : Array.isArray(req.body.tags) ? req.body.tags : [];
     }
 
-    const resource = await Resource.create({
-      title: req.body.title,
-      fileUrl: file.secure_url || file.path || '',
-      fileName: file.originalname,
-      module: req.body.module,
-      semester: req.body.semester,
-      year: req.body.year,
-      tags: tags,
-      description: req.body.description,
-      createdBy: new mongoose.Types.ObjectId(req.user!.id)
-    });
+    const resourceData: any = {
+      title: req.body.title?.trim(),
+      description: req.body.description?.trim(),
+      type: req.body.type || 'PDF',
+      subject: req.body.subject?.trim(),
+      uploadedBy: req.user?.name || 'Student',
+      uploadedById: req.user ? new mongoose.Types.ObjectId(req.user.id) : undefined,
+      tags,
+      targetAudience: req.body.targetAudience || 'All Students',
+      targetFaculty: req.body.targetFaculty,
+      targetSemester: req.body.targetSemester,
+      targetYear: req.body.targetYear,
+      status: 'approved',
+    };
 
+    if (req.file) {
+      resourceData.fileUrl = file.secure_url || file.path;
+      resourceData.fileName = file.originalname;
+    } else if (req.body.url) {
+      resourceData.url = req.body.url;
+    }
+
+    // Final safety check
+    if (!resourceData.subject) {
+      return res.status(400).json({ error: "Subject is required" });
+    }
+
+    const resource = await Resource.create(resourceData);
     res.status(201).json(resource);
+
   } catch (err: any) {
+    console.error("Create Resource Error:", err);
     res.status(500).json({ error: err.message });
   }
 };
-
 // GET ALL Resources
 export const getResources = async (_req: Request, res: Response) => {
   try {
     
-    const resources = await Resource.find().populate('createdBy', 'name email');
+    const resources = await Resource.find().populate('uploadedById', 'name email');
     res.json(resources);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+};
+export const getResourceById = async (req: Request, res: Response) => {
+  try {
+    const resource = await Resource.findById(req.params.id);
+
+    if (!resource) {
+      return res.status(404).json({ message: "Resource not found" });
+    }
+
+    res.json(resource);
   } catch (err: any) {
     res.status(500).json({ error: err.message });
   }
@@ -68,7 +94,7 @@ export const getResources = async (_req: Request, res: Response) => {
 export const getMyResources = async (req: AuthRequest, res: Response) => {
   try {
     const resources = await Resource.find({
-      createdBy: new mongoose.Types.ObjectId(req.user!.id)
+      uploadedById: new mongoose.Types.ObjectId(req.user!.id)
     }).sort({ createdAt: -1 });
 
     res.json(resources);
@@ -77,15 +103,24 @@ export const getMyResources = async (req: AuthRequest, res: Response) => {
   }
 };
 
-// UPDATE Resource
 export const updateResource = async (req: AuthRequest, res: Response) => {
   try {
+    const allowedUpdates = [
+      'title', 'description', 'subject', 'targetAudience',
+      'targetFaculty', 'targetSemester', 'targetYear', 'tags'
+    ];
+
+    const updates: any = {};
+    allowedUpdates.forEach(field => {
+      if (req.body[field] !== undefined) updates[field] = req.body[field];
+    });
+
     const resource = await Resource.findOneAndUpdate(
       {
         _id: toObjectId(req.params.id),
-        createdBy: new mongoose.Types.ObjectId(req.user!.id)
+        uploadedById: new mongoose.Types.ObjectId(req.user!.id)
       },
-      req.body,
+      updates,
       { new: true }
     );
 
@@ -104,7 +139,7 @@ export const deleteResource = async (req: AuthRequest, res: Response) => {
   try {
     const resource = await Resource.findOneAndDelete({
       _id: toObjectId(req.params.id),
-      createdBy: new mongoose.Types.ObjectId(req.user!.id)
+      uploadedById: new mongoose.Types.ObjectId(req.user!.id)
     });
 
     if (!resource) {
@@ -112,6 +147,48 @@ export const deleteResource = async (req: AuthRequest, res: Response) => {
     }
 
     res.json({ message: 'Resource deleted successfully' });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+};
+export const incrementDownloads = async (req: Request, res: Response) => {
+  try {
+    const resource = await Resource.findByIdAndUpdate(
+      req.params.id,
+      { $inc: { downloads: 1 } },
+      { new: true }
+    );
+
+    res.json(resource);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+export const updateResourceStatus = async (req: Request, res: Response) => {
+  try {
+    const resource = await Resource.findByIdAndUpdate(
+      req.params.id,
+      { status: req.body.status },
+      { new: true }
+    );
+
+    res.json(resource);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+};
+export const getResourceStats = async (_req: Request, res: Response) => {
+  try {
+    const total = await Resource.countDocuments();
+    const approved = await Resource.countDocuments({ status: "approved" });
+    const pending = await Resource.countDocuments({ status: "pending" });
+
+    res.json({
+      total,
+      approved,
+      pending
+    });
   } catch (err: any) {
     res.status(500).json({ error: err.message });
   }
