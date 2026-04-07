@@ -1,10 +1,11 @@
+// frontend/src/components/AddResourceModal.tsx
 import { useState, useEffect } from 'react';
 import type { Resource } from '../types';
 
 interface Props {
   isOpen: boolean;
   onClose: () => void;
-  onAdd: (resource: Omit<Resource, '_id'>, file?: File) => void;
+  onAdd: (resource: any, file?: File) => void;
   editingResource?: Resource | null;
 }
 
@@ -18,38 +19,45 @@ export default function AddResourceModal({
 
   const [form, setForm] = useState({
     title: '',
-    module: '',
-    semester: '',
-    year: 'Year 1',
-    tags: '',
     description: '',
+    type: 'PDF' as 'PDF' | 'Video' | 'Image' | 'Link',
+    subject: '',
+    targetAudience: 'All Students' as 'All Students' | 'By Faculty' | 'By Semester' | 'By Year',
+    targetFaculty: '',
+    targetSemester: '',
+    targetYear: '',
+    tags: '',
     file: null as File | null,
   });
 
-  // ✅ Populate form when editing
   useEffect(() => {
     if (editingResource) {
       setForm({
         title: editingResource.title ?? '',
-        module: editingResource.module ?? '',
-        semester: editingResource.semester ?? '',
-        year: editingResource.year ?? 'Year 1',
-        tags: editingResource.tags?.join(', ') ?? '',
         description: editingResource.description ?? '',
+        type: editingResource.type ?? 'PDF',
+        subject: editingResource.subject ?? '',
+        targetAudience: editingResource.targetAudience ?? 'All Students',
+        targetFaculty: editingResource.targetFaculty ?? '',
+        targetSemester: editingResource.targetSemester ?? '',
+        targetYear: editingResource.targetYear ?? '',
+        tags: editingResource.tags?.join(', ') ?? '',
         file: null,
       });
     } else {
       setForm({
         title: '',
-        module: '',
-        semester: '',
-        year: 'Year 1',
-        tags: '',
         description: '',
+        type: 'PDF',
+        subject: '',
+        targetAudience: 'All Students',
+        targetFaculty: '',
+        targetSemester: '',
+        targetYear: '',
+        tags: '',
         file: null,
       });
     }
-
     setErrors({});
   }, [editingResource, isOpen]);
 
@@ -61,41 +69,26 @@ export default function AddResourceModal({
     const newErrors: Record<string, string> = {};
 
     if (!form.title.trim()) newErrors.title = 'Title is required';
-    else if (form.title.trim().length < 3)
-      newErrors.title = 'Minimum 3 characters required';
+    if (!form.subject.trim()) newErrors.subject = 'Subject is required';
+    if (!form.description.trim()) newErrors.description = 'Description is required';
 
-    if (!form.module.trim()) newErrors.module = 'Module is required';
-    if (!form.semester.trim()) newErrors.semester = 'Semester is required';
-    if (!form.year) newErrors.year = 'Year is required';
-
-    if (!form.tags.trim()) newErrors.tags = 'At least one tag required';
-
-    if (!form.description.trim())
-      newErrors.description = 'Description is required';
-    else if (form.description.trim().length < 10)
-      newErrors.description = 'Minimum 10 characters required';
-
-    if (!editingResource && !form.file)
-      newErrors.file = 'File is required';
+    if (!editingResource && !form.file) newErrors.file = 'File is required';
 
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
       return;
     }
 
-    const newResource: Omit<Resource, '_id'> = {
+    const newResource = {
       title: form.title.trim(),
-      module: form.module.trim(),
-      semester: form.semester.trim(),
-      year: form.year,
-      tags: form.tags.split(',').map((t) => t.trim()),
       description: form.description.trim(),
-      fileName:
-        editingResource?.fileName ||
-        form.file?.name ||
-        'uploaded-file',
-      fileUrl: editingResource?.fileUrl || '', // backend will update if new file
-      createdBy: editingResource?.createdBy || '',
+      type: form.type,
+      subject: form.subject.trim(),
+      targetAudience: form.targetAudience,
+      targetFaculty: form.targetFaculty || undefined,
+      targetSemester: form.targetSemester || undefined,
+      targetYear: form.targetYear || undefined,
+      tags: form.tags.split(',').map((t) => t.trim()).filter(Boolean),
     };
 
     onAdd(newResource, form.file ?? undefined);
@@ -110,143 +103,127 @@ export default function AddResourceModal({
         </h2>
 
         <form onSubmit={handleSubmit} className="space-y-4">
-
-          {/* TITLE */}
           <div>
             <label className="text-sm font-medium">Title</label>
             <input
               value={form.title}
-              onChange={(e) =>
-                setForm({ ...form, title: e.target.value })
-              }
+              onChange={(e) => setForm({ ...form, title: e.target.value })}
               className="w-full border p-2 rounded-lg mt-1"
+              placeholder="Enter resource title"
             />
-            {errors.title && (
-              <p className="text-red-500 text-xs">{errors.title}</p>
-            )}
+            {errors.title && <p className="text-red-500 text-xs">{errors.title}</p>}
           </div>
 
-          {/* FILE */}
+          <div>
+            <label className="text-sm font-medium">Subject</label>
+            <input
+              value={form.subject}
+              onChange={(e) => setForm({ ...form, subject: e.target.value })}
+              className="w-full border p-2 rounded-lg mt-1"
+              placeholder="e.g. Data Structures"
+            />
+            {errors.subject && <p className="text-red-500 text-xs">{errors.subject}</p>}
+          </div>
+
           {!editingResource && (
             <div>
               <label className="text-sm font-medium">File</label>
               <input
                 type="file"
                 className="w-full mt-1"
-                onChange={(e) =>
-                  setForm({
-                    ...form,
-                    file: e.target.files?.[0] ?? null,
-                  })
-                }
+                onChange={(e) => setForm({ ...form, file: e.target.files?.[0] ?? null })}
               />
-              {errors.file && (
-                <p className="text-red-500 text-xs">{errors.file}</p>
-              )}
+              {errors.file && <p className="text-red-500 text-xs">{errors.file}</p>}
             </div>
           )}
 
-          {/* GRID */}
-          <div className="grid grid-cols-2 gap-3">
-
-            <div>
-              <input
-                placeholder="Module"
-                value={form.module}
-                onChange={(e) =>
-                  setForm({ ...form, module: e.target.value })
-                }
-                className="border p-2 rounded-lg w-full"
-              />
-              {errors.module && (
-                <p className="text-red-500 text-xs">{errors.module}</p>
-              )}
-            </div>
-
-            <div>
-              <select
-  value={form.semester}
-  onChange={(e) =>
-    setForm({ ...form, semester: e.target.value })
-  }
-  className="border p-2 rounded-lg w-full"
->
-  <option value="">Select Semester</option>
-  <option value="Semester 1">Semester 1</option>
-  <option value="Semester 2">Semester 2</option>
-</select>
-              {errors.semester && (
-                <p className="text-red-500 text-xs">{errors.semester}</p>
-              )}
-            </div>
-
-            <div>
-              <select
-                value={form.year}
-                onChange={(e) =>
-                  setForm({ ...form, year: e.target.value })
-                }
-                className="border p-2 rounded-lg w-full"
-              >
-                <option>Year 1</option>
-                <option>Year 2</option>
-                <option>Year 3</option>
-                <option>Year 4</option>
-              </select>
-              {errors.year && (
-                <p className="text-red-500 text-xs">{errors.year}</p>
-              )}
-            </div>
-
-            <div>
-              <input
-                placeholder="Tags (comma separated)"
-                value={form.tags}
-                onChange={(e) =>
-                  setForm({ ...form, tags: e.target.value })
-                }
-                className="border p-2 rounded-lg w-full"
-              />
-              {errors.tags && (
-                <p className="text-red-500 text-xs">{errors.tags}</p>
-              )}
-            </div>
-          </div>
-
-          {/* DESCRIPTION */}
           <div>
-            <textarea
-              placeholder="Description"
-              value={form.description}
-              onChange={(e) =>
-                setForm({
-                  ...form,
-                  description: e.target.value,
-                })
-              }
-              className="w-full border p-2 rounded-lg"
-            />
-            {errors.description && (
-              <p className="text-red-500 text-xs">
-                {errors.description}
-              </p>
-            )}
+            <label className="text-sm font-medium">Target Audience</label>
+            <select
+              value={form.targetAudience}
+              onChange={(e) => setForm({ ...form, targetAudience: e.target.value as any })}
+              className="w-full border p-2 rounded-lg mt-1"
+            >
+              <option value="All Students">All Students</option>
+              <option value="By Faculty">By Faculty</option>
+              <option value="By Semester">By Semester</option>
+              <option value="By Year">By Year</option>
+            </select>
           </div>
 
-          {/* BUTTONS */}
-          <div className="flex gap-3">
-            <button className="flex-1 bg-[#006591] text-white py-2 rounded-lg">
-              {editingResource ? 'Update' : 'Upload'}
+          {form.targetAudience === 'By Faculty' && (
+            <div>
+              <label className="text-sm font-medium">Faculty</label>
+              <input
+                value={form.targetFaculty}
+                onChange={(e) => setForm({ ...form, targetFaculty: e.target.value })}
+                className="w-full border p-2 rounded-lg mt-1"
+                placeholder="e.g. Computing"
+              />
+            </div>
+          )}
+
+          {form.targetAudience === 'By Semester' && (
+            <div>
+              <label className="text-sm font-medium">Semester</label>
+              <select
+                value={form.targetSemester}
+                onChange={(e) => setForm({ ...form, targetSemester: e.target.value })}
+                className="w-full border p-2 rounded-lg mt-1"
+              >
+                <option value="">Select Semester</option>
+                <option value="Semester 1">Semester 1</option>
+                <option value="Semester 2">Semester 2</option>
+              </select>
+            </div>
+          )}
+
+          {form.targetAudience === 'By Year' && (
+            <div>
+              <label className="text-sm font-medium">Year</label>
+              <select
+                value={form.targetYear}
+                onChange={(e) => setForm({ ...form, targetYear: e.target.value })}
+                className="w-full border p-2 rounded-lg mt-1"
+              >
+                <option value="">Select Year</option>
+                <option value="1">Year 1</option>
+                <option value="2">Year 2</option>
+                <option value="3">Year 3</option>
+                <option value="4">Year 4</option>
+              </select>
+            </div>
+          )}
+
+          <div>
+            <label className="text-sm font-medium">Tags (comma separated)</label>
+            <input
+              value={form.tags}
+              onChange={(e) => setForm({ ...form, tags: e.target.value })}
+              className="w-full border p-2 rounded-lg mt-1"
+              placeholder="notes, lecture, exam"
+            />
+          </div>
+
+          <div>
+            <label className="text-sm font-medium">Description</label>
+            <textarea
+              value={form.description}
+              onChange={(e) => setForm({ ...form, description: e.target.value })}
+              className="w-full border p-2 rounded-lg mt-1 h-24"
+              placeholder="Brief description..."
+            />
+            {errors.description && <p className="text-red-500 text-xs">{errors.description}</p>}
+          </div>
+
+          <div className="flex gap-3 pt-4">
+            <button type="submit" className="flex-1 bg-[#006591] text-white py-2 rounded-lg font-medium">
+              {editingResource ? 'Update Resource' : 'Upload Resource'}
             </button>
-            <button
-              type="button"
-              onClick={onClose}
-              className="flex-1 border py-2 rounded-lg"
-            >
+            <button type="button" onClick={onClose} className="flex-1 border py-2 rounded-lg">
               Cancel
             </button>
           </div>
-
         </form>
       </div>
     </div>

@@ -4,7 +4,7 @@ export interface Task {
   id: string;
   title: string;
   type: 'assignment' | 'exam' | 'project' | 'quiz' | 'presentation';
-  dueDate: string;           // ISO string (e.g. "2026-03-10T14:30:00")
+  dueDate: string;
   priority: 'low' | 'medium' | 'high';
   description: string;
   resourceLink?: string;
@@ -16,12 +16,33 @@ export interface Task {
 export interface Resource {
   _id: string;
   title: string;
-  fileName: string;
-  fileUrl:string;
-  module?: string;
-  semester?: string;
-  year?: string;
+  description: string;
+  type: "PDF" | "Video" | "Image" | "Link";
+  
+  // File upload (from students)
+  fileUrl?: string;
+  fileName?: string;
+  
+  // Direct URL (mainly from admin)
+  url?: string;
+
+  fileSize?: string;
+  subject: string;                    // ← Important: use subject, not module
+  
+  uploadedBy: string;
+  uploadedById?: string;
+  
+  downloads: number;
+  status: "pending" | "approved" | "rejected";
+  
   tags: string[];
-  description?: string;
-  createdBy?: string; 
+  
+  // Target Audience fields
+  targetAudience: "All Students" | "By Faculty" | "By Semester" | "By Year";
+  targetFaculty?: string;
+  targetSemester?: string;
+  targetYear?: string;
+
+  createdAt: string;
+  updatedAt: string;
 }

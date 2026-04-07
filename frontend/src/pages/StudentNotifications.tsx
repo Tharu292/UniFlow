@@ -23,6 +23,14 @@ const StudentNotifications = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [user, setUser] = useState<any>(null);
+  useEffect(() => {
+  // Reset notification count in header when user visits full notifications page
+  const resetHeaderCount = () => {
+    // You can use a global state later (Context/Redux), but for now this works
+    localStorage.setItem("lastNotifCheck", Date.now().toString());
+  };
+  resetHeaderCount();
+}, []);
 
   useEffect(() => {
     const userData = localStorage.getItem('user');

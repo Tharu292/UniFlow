@@ -7,6 +7,7 @@ dotenv.config();
 interface JwtPayload {
   id: string;
   role: "admin" | "student";
+  name: string;
 }
 
 export const verifyToken = (req: any, res: Response, next: NextFunction) => {
