@@ -1,8 +1,10 @@
+// frontend/src/pages/Login.tsx
 import { useState, useContext } from "react";
 import { useNavigate, Link, useLocation } from "react-router-dom";
 import api from "../api";
 import { AuthContext } from "../context/AuthContext";
 import { toast } from "react-hot-toast";
+import { ArrowLeft } from "lucide-react";
 
 const Login = () => {
   const { setUser } = useContext(AuthContext);
@@ -20,13 +22,11 @@ const Login = () => {
     e.preventDefault();
     setError("");
 
-    // Student validation
     if (role === "student" && !/^it\d{8}@my\.sliit\.lk$/.test(email)) {
       setError("Students must login with a valid SLIIT email (itxxxxxxx@my.sliit.lk)");
       return;
     }
 
-    // Admin validation
     if (role === "admin" && email !== "admin123@gmail.com") {
       setError("Admin must login with a valid email.");
       return;
@@ -41,13 +41,13 @@ const Login = () => {
 
       toast.success("Login successful!");
 
-     setTimeout(() => {
-  if (res.data.user.role === "admin") {
-    navigate("/admin/dashboard", { replace: true });
-  } else {
-    navigate("/dashboard", { replace: true });
-  }
-}, 800);
+      setTimeout(() => {
+        if (res.data.user.role === "admin") {
+          navigate("/admin/dashboard", { replace: true });
+        } else {
+          navigate("/dashboard", { replace: true });
+        }
+      }, 800);
 
     } catch (err: any) {
       const message = err.response?.data?.message || "Login failed";
@@ -58,7 +58,16 @@ const Login = () => {
 
   return (
     <div className="min-h-screen bg-[#0b3c5d] flex items-center justify-center px-4 py-10">
-      <div className="bg-white rounded-3xl shadow-2xl w-full max-w-md p-10">
+      <div className="bg-white rounded-3xl shadow-2xl w-full max-w-md p-10 relative">
+
+        {/* Back Button */}
+        <button
+          onClick={() => navigate("/")}
+          className="absolute top-6 left-6 flex items-center gap-2 text-gray-500 hover:text-gray-700 transition"
+        >
+          <ArrowLeft size={20} />
+          <span className="text-sm font-medium">Back</span>
+        </button>
 
         {/* Title */}
         <h1 className="text-3xl font-bold text-center text-[#0b3c5d] mb-2">

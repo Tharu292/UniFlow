@@ -121,12 +121,12 @@ const Profile = () => {
         </div>
       </div>
 
-      {/* GAMIFICATION CARDS - ONLY FOR STUDENTS */}
+      {/* SMALLER GAMIFICATION CARDS - ONLY FOR STUDENTS */}
       {!isAdmin && (
-        <div className="max-w-7xl mx-auto px-6 -mt-8 relative z-10 grid grid-cols-1 md:grid-cols-3 gap-6">
-          <Card icon={<Trophy className="text-amber-500" size={28} />} title="Total Points" value={user.points || 0} desc="Earned through answers & upvotes" />
-          <Card icon={<Star className="text-blue-600" size={28} />} title="Current Rank" value={user.rank || "Bronze"} desc="Keep contributing to level up!" />
-          <Card icon={<Award className="text-purple-600" size={28} />} title="Badges Earned" value={user.badges?.length || 0} desc={user.badges?.join(", ") || "No badges yet"} />
+        <div className="max-w-7xl mx-auto px-6 -mt-6 relative z-10 grid grid-cols-1 md:grid-cols-3 gap-4">
+          <Card icon={<Trophy className="text-amber-500" size={24} />} title="Points" value={user.points || 0} desc="Earned" />
+          <Card icon={<Star className="text-blue-600" size={24} />} title="Rank" value={user.rank || "Bronze"} desc="Level" />
+          <Card icon={<Award className="text-purple-600" size={24} />} title="Badges" value={user.badges?.length || 0} desc="Earned" />
         </div>
       )}
 
@@ -211,11 +211,11 @@ const Input = (props: any) => (
 );
 
 const Card = ({ icon, title, value, desc }: any) => (
-  <div className="bg-white rounded-2xl shadow-md p-6 flex flex-col items-center text-center">
-    <div className="w-14 h-14 rounded-full bg-gray-100 flex items-center justify-center mb-4">{icon}</div>
+  <div className="bg-white rounded-2xl shadow p-5 flex flex-col items-center text-center">
+    <div className="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center mb-3">{icon}</div>
     <p className="text-sm text-gray-500 font-medium">{title}</p>
-    <p className="text-4xl font-bold text-gray-800 mt-1">{value}</p>
-    {desc && <p className="text-xs text-gray-400 mt-2">{desc}</p>}
+    <p className="text-3xl font-bold text-gray-800 mt-1">{value}</p>
+    {desc && <p className="text-xs text-gray-400 mt-1">{desc}</p>}
   </div>
 );
 
