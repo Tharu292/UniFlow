@@ -3,15 +3,17 @@ import {
   createAnswer,
   getAnswers,
   voteAnswer,
-  deleteAnswer
+  deleteAnswer,
+  updateAnswer
 } from "../controllers/answerController";
-import { protect } from "../middleware/authMiddleware";
+import { verifyToken } from "../middleware/authMiddleware";
 
 const router = express.Router();
 
-router.post("/", protect, createAnswer);
+router.post("/", verifyToken, createAnswer);
 router.get("/:questionId", getAnswers);
-router.post("/vote/:id", protect, voteAnswer);
-router.delete("/:id", protect, deleteAnswer);
+router.post("/vote/:id", verifyToken, voteAnswer);
+router.put("/:id", verifyToken, updateAnswer);     // ← NEW
+router.delete("/:id", verifyToken, deleteAnswer);
 
 export default router;

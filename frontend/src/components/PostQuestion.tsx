@@ -1,5 +1,6 @@
 import { useState } from "react";
-import api from "../Utils/axiosConfig";
+import api from "../api";
+import { toast } from "react-hot-toast";
 
 const PostQuestion = ({ refresh }: any) => {
   const [title, setTitle] = useState("");
@@ -44,22 +45,29 @@ const PostQuestion = ({ refresh }: any) => {
     return valid;
   };
 
-  const submit = async () => {
-    if (!validate()) return;
+ const submit = async () => {
+  if (!validate()) return;
 
-    try {
-      await api.post("/questions", { title, description });
+  const titleTrim = title.trim();
+  const descTrim = description.trim();
 
-      setTitle("");
-      setDescription("");
-      setErrors({ title: "", description: "" });
+  // Block if ONLY numbers (no letters at all)
+  if (/^\d+$/.test(titleTrim) || /^\d+$/.test(descTrim)) {
+    toast.error("Title and description cannot contain only numbers. Please include some letters.");
+    return;
+  }
 
-      refresh();
-    } catch (err: any) {
-      console.error(err.response?.data || err.message);
-    }
-  };
-
+  try {
+    await api.post("/questions", { title, description });
+    toast.success("Question posted successfully!");
+    setTitle("");
+    setDescription("");
+    setErrors({ title: "", description: "" });
+    refresh();
+  } catch (err: any) {
+    toast.error(err.response?.data?.message || "Failed to post question");
+  }
+};
   return (
     <div className="max-w-2xl mx-auto bg-white shadow-md rounded-xl p-6 mb-6 border">
       

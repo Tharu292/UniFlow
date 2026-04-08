@@ -11,6 +11,9 @@ interface User {
   faculty?: string;
   semester?: string;
   year?: string;
+  points?: number;
+  rank?: string;
+  badges?: string[];
   firstLogin?: string | Date;
   lastLogin?: string | Date;
 }

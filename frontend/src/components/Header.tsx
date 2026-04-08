@@ -1,7 +1,7 @@
 // frontend/src/components/Header.tsx
 import { Link, useNavigate, useLocation } from "react-router-dom";
-import { Bell, User, Search } from "lucide-react";
-import { useContext, useState, useEffect } from "react";
+import { Bell, User, Search, LayoutDashboard, BookOpen, Users, FolderOpen, Trophy, MessageSquare } from "lucide-react";
+import { useContext, useState, useEffect, useRef } from "react";
 import { AuthContext } from "../context/AuthContext";
 import logo from "../assets/logo.png";
 import axios from "axios";
@@ -20,7 +20,21 @@ export default function Header() {
   const [unreadCount, setUnreadCount] = useState(0);
   const [loading, setLoading] = useState(false);
 
-  // Fetch notifications
+  const profileRef = useRef<HTMLDivElement>(null);
+  const notifRef = useRef<HTMLDivElement>(null);
+
+  // Close dropdowns when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (profileRef.current && !profileRef.current.contains(event.target as Node)) setOpen(false);
+      if (notifRef.current && !notifRef.current.contains(event.target as Node)) setNotifOpen(false);
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  // Fetch notifications for BOTH admin and student
   const fetchNotifications = async () => {
     if (!user) return;
 
@@ -64,15 +78,13 @@ export default function Header() {
   const handleBellClick = () => {
     setNotifOpen(!notifOpen);
     setOpen(false);
-    if (!notifOpen && unreadCount > 0) {
-      markAsViewed();
-    }
+    if (!notifOpen && unreadCount > 0) markAsViewed();
   };
 
   const goToNotificationsPage = () => {
     markAsViewed();
     setNotifOpen(false);
-    navigate("/student/notifications");
+    navigate(user?.role === "admin" ? "/admin/notifications" : "/student/notifications");
   };
 
   const handleLogout = () => {
@@ -83,12 +95,12 @@ export default function Header() {
     navigate("/login");
   };
 
-  // Mark as viewed when on notifications page
   useEffect(() => {
-    if (location.pathname === "/student/notifications") {
-      markAsViewed();
-    }
+    setOpen(false);
+    setNotifOpen(false);
   }, [location.pathname]);
+
+  const isAdmin = user?.role === "admin";
 
   return (
     <header className="bg-white shadow-sm sticky top-0 z-50">
@@ -98,31 +110,42 @@ export default function Header() {
           <img src={logo} alt="UniFlow Logo" className="w-25 h-16 object-contain" />
         </Link>
 
-        {/* Navigation */}
+        {/* Dynamic Navigation */}
         <nav className="hidden md:flex items-center gap-8 text-black font-medium">
-          <Link to="/" className="hover:text-[#006591] transition">Dashboard</Link>
-          <Link to="/resources" className="hover:text-[#006591] transition">Resources</Link>
-          <Link to="/forum" className="hover:text-[#006591] transition">Forum</Link>
-          <Link to="/leaderboard" className="hover:text-[#006591] transition">Leaderboard</Link>
+          {isAdmin ? (
+            <>
+              <Link to="/admin/dashboard" className="hover:text-[#006591] transition flex items-center gap-1">
+                <LayoutDashboard size={18} /> Dashboard
+              </Link>
+              <Link to="/admin/users" className="hover:text-[#006591] transition flex items-center gap-1">
+                <Users size={18} /> Users
+              </Link>
+              <Link to="/admin/resources" className="hover:text-[#006591] transition flex items-center gap-1">
+                <FolderOpen size={18} /> Resources
+              </Link>
+              <Link to="/forum" className="hover:text-[#006591] transition flex items-center gap-1">
+                <MessageSquare size={18} /> Forum
+              </Link>
+            </>
+          ) : (
+            <>
+              <Link to="/dashboard" className="hover:text-[#006591] transition">Dashboard</Link>
+              <Link to="/resources" className="hover:text-[#006591] transition">Resources</Link>
+              <Link to="/forum" className="hover:text-[#006591] transition">Forum</Link>
+              <Link to="/leaderboard" className="hover:text-[#006591] transition">Leaderboard</Link>
+            </>
+          )}
         </nav>
 
         {/* Right Side */}
         <div className="flex items-center gap-4">
-          {/* Search Bar */}
-          <div className="flex items-center bg-gray-50 border border-gray-300 rounded-full px-4 py-2 focus-within:border-[#006591]">
-            <Search size={18} className="text-gray-500" />
-            <input
-              type="text"
-              placeholder="Search here"
-              className="ml-2 outline-none bg-transparent text-sm w-48"
-            />
-          </div>
+          {/* Search Bar - Removed as per your request */}
+          {/* <div className="flex items-center ..."> ... </div> */}
 
           {user ? (
-            /* ==================== LOGGED IN USER ==================== */
             <>
-              {/* Notification Bell */}
-              <div className="relative">
+              {/* Notification Bell - Shown for BOTH admin and student */}
+              <div className="relative" ref={notifRef}>
                 <button
                   onClick={handleBellClick}
                   className="p-2.5 text-gray-700 hover:text-[#006591] hover:bg-gray-100 rounded-full transition-all"
@@ -135,7 +158,6 @@ export default function Header() {
                   )}
                 </button>
 
-                {/* Notification Dropdown */}
                 {notifOpen && (
                   <div className="absolute right-0 mt-2 w-80 bg-white shadow-xl rounded-2xl border border-gray-200 py-2 z-50 max-h-[420px] overflow-hidden flex flex-col">
                     <div className="px-4 py-3 border-b bg-gray-50 rounded-t-2xl">
@@ -186,7 +208,7 @@ export default function Header() {
               </div>
 
               {/* Profile Icon */}
-              <div className="relative">
+              <div className="relative" ref={profileRef}>
                 <button
                   onClick={() => {
                     setOpen(!open);
@@ -204,6 +226,7 @@ export default function Header() {
                         {user.firstName} {user.lastName}
                       </p>
                       <p className="text-xs text-gray-500 mt-0.5">{user.email}</p>
+                      <p className="text-xs text-gray-400 capitalize">{user.role}</p>
                     </div>
                     <div className="py-1">
                       <button
@@ -224,18 +247,11 @@ export default function Header() {
               </div>
             </>
           ) : (
-            /* ==================== NOT LOGGED IN - SHOW LOGIN & SIGNUP ==================== */
             <>
-              <Link 
-                to="/login" 
-                className="text-sm text-[#006591] font-medium px-4 py-2 hover:bg-gray-100 rounded-lg transition"
-              >
+              <Link to="/login" className="text-sm text-[#006591] font-medium px-4 py-2 hover:bg-gray-100 rounded-lg transition">
                 Login
               </Link>
-              <Link
-                to="/register"
-                className="text-sm bg-[#006591] text-white px-5 py-2 rounded-full hover:bg-[#00507a] transition"
-              >
+              <Link to="/register" className="text-sm bg-[#006591] text-white px-5 py-2 rounded-full hover:bg-[#00507a] transition">
                 Sign Up
               </Link>
             </>

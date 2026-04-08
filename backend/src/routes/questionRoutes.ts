@@ -2,14 +2,18 @@ import express from "express";
 import {
   createQuestion,
   getQuestions,
-  deleteQuestion
+  getQuestion,          // ← NEW
+  deleteQuestion,
+  updateQuestion
 } from "../controllers/questionController";
-import { protect } from "../middleware/authMiddleware";
+import { verifyToken } from "../middleware/authMiddleware";
 
 const router = express.Router();
 
-router.post("/", protect, createQuestion);
+router.post("/", verifyToken, createQuestion);
 router.get("/", getQuestions);
-router.delete("/:id", protect, deleteQuestion);
+router.get("/:id", getQuestion);       
+router.put("/:id", verifyToken, updateQuestion);   // ← NEW    // ← NEW
+router.delete("/:id", verifyToken, deleteQuestion);
 
 export default router;

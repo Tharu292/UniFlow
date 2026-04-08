@@ -35,43 +35,55 @@ const ForgotPassword = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      <div className="bg-white p-8 rounded-xl shadow-md w-full max-w-md">
+    <div className="min-h-screen bg-[#0b3c5d] flex items-center justify-center px-4 py-10">
+      <div className="bg-white rounded-3xl shadow-2xl w-full max-w-md p-10">
 
-        <h2 className="text-2xl font-bold mb-4 text-center">
+        {/* Title */}
+        <h2 className="text-3xl font-bold text-center text-[#0b3c5d] mb-2">
           Forgot Password
         </h2>
 
+        <p className="text-center text-gray-500 mb-8">
+          Enter your SLIIT email to receive a reset link
+        </p>
+
         {!success ? (
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit} className="space-y-5">
 
-            <input
-              type="email"
-              placeholder="Enter your SLIIT email"
-              value={email}
-              onChange={e => setEmail(e.target.value)}
-              className="w-full p-2 border rounded"
-              required
-            />
+            {/* Email */}
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-1">
+                SLIIT Email Address
+              </label>
+              <input
+                type="email"
+                placeholder="itxxxxxxxx@my.sliit.lk"
+                value={email}
+                onChange={e => setEmail(e.target.value)}
+                className="w-full border border-gray-300 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[#0b3c5d]"
+                required
+              />
+            </div>
 
+            {/* Button */}
             <button
               type="submit"
-              className="w-full bg-indigo-600 text-white py-2 rounded"
+              className="w-full bg-[#0b3c5d] text-white py-3 rounded-xl font-semibold hover:bg-[#092c44] transition shadow-md"
             >
               Send Reset Link
             </button>
 
           </form>
         ) : (
-          <div className="text-center space-y-4">
+          <div className="text-center space-y-5">
 
-            <p className="text-green-600 font-medium">
-              Reset link sent successfully (Demo)
-            </p>
+            <div className="bg-green-50 border border-green-200 text-green-700 rounded-xl p-4">
+              Reset link sent successfully! Please check your email.
+            </div>
 
             <button
               onClick={handleForgot}
-              className="w-full bg-indigo-500 text-white py-2 rounded"
+              className="w-full bg-orange-500 text-white py-3 rounded-xl font-semibold hover:bg-orange-600 transition shadow-md"
             >
               Resend Link
             </button>
@@ -79,9 +91,9 @@ const ForgotPassword = () => {
           </div>
         )}
 
-        {/* Error Message */}
+        {/* Error */}
         {error && (
-          <p className="mt-4 text-center text-red-500">
+          <p className="mt-4 text-center text-red-500 font-medium">
             {error}
           </p>
         )}

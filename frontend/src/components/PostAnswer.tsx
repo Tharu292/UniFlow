@@ -1,5 +1,6 @@
 import { useState } from "react";
-import api from "../Utils/axiosConfig";
+import api from "../api";
+import { toast } from "react-hot-toast";
 
 const PostAnswer = ({ questionId, refresh }: any) => {
   const [content, setContent] = useState("");
@@ -7,26 +8,34 @@ const PostAnswer = ({ questionId, refresh }: any) => {
 
   // Validation and submission logic
   const submit = async () => {
-    if (!content.trim()) {
-      setError("Answer is required");
-      return;
-    }
+  const contentTrim = content.trim();
 
-    if (content.trim().length < 20) {
-      setError("Answer must be at least 20 characters");
-      return;
-    }
+  if (!contentTrim) {
+    setError("Answer is required");
+    return;
+  }
 
-    try {
-      setError("");
-      await api.post("/answers", { content, questionId });
+  if (contentTrim.length < 20) {
+    setError("Answer must be at least 20 characters");
+    return;
+  }
 
-      setContent("");
-      refresh();
-    } catch (err: any) {
-      setError(err.response?.data?.message || "Something went wrong");
-    }
-  };
+  // Block if ONLY numbers
+  if (/^\d+$/.test(contentTrim)) {
+    setError("Answer cannot contain only numbers. Please include some letters.");
+    return;
+  }
+
+  try {
+    setError("");
+    await api.post("/answers", { content, questionId });
+    toast.success("Answer posted successfully!");
+    setContent("");
+    refresh();
+  } catch (err: any) {
+    toast.error(err.response?.data?.message || "Failed to post answer");
+  }
+};
 
   return (
     <div className="bg-white shadow-md rounded-xl p-5 mt-6 border max-w-2xl">
