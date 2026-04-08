@@ -1,3 +1,4 @@
+// frontend/src/pages/Settings.tsx
 import { useContext, useState } from "react";
 import { ThemeContext } from "../context/ThemeContext";
 import { AuthContext } from "../context/AuthContext";
@@ -26,41 +27,28 @@ export default function Settings() {
 
   const [loading, setLoading] = useState(false);
 
-  /*  REQUEST OTP (CHANGE PASSWORD) */
   const handleOpenChangePassword = async () => {
     try {
       setLoading(true);
-
       const token = localStorage.getItem("token");
 
       const res = await api.post(
         "/auth/change-password/request-otp",
         {},
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
+        { headers: { Authorization: `Bearer ${token}` } }
       );
 
-      toast.success("OTP sent to your email ");
-
-      // Navigate to OTP page
+      toast.success("OTP sent to your email");
       navigate("/verify-otp", {
-        state: {
-          email: res.data.email,
-          type: "change-password", //  important
-        },
+        state: { email: res.data.email, type: "change-password" },
       });
-
     } catch (err: any) {
-      toast.error(err.response?.data?.message || "Failed ❌");
+      toast.error(err.response?.data?.message || "Failed to send OTP");
     } finally {
       setLoading(false);
     }
   };
 
-  // LOGOUT 
   const handleLogout = () => {
     localStorage.clear();
     setUser(null);
@@ -70,128 +58,101 @@ export default function Settings() {
   if (!user) return <p className="text-center mt-10">Loading...</p>;
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition">
-
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors">
       {/* HEADER */}
-      <div
-        className="text-white py-5"
-        style={{
-          background: "linear-gradient(90deg, #006591 0%, #cc5500 100%)",
-        }}
-      >
+      <div className="bg-gradient-to-r from-[#006591] to-[#cc5500] text-white py-6">
         <div className="max-w-7xl mx-auto px-6 flex justify-between items-center">
           <div className="flex items-center gap-3">
-            <SettingsIcon />
+            <SettingsIcon size={28} />
             <div>
               <h1 className="text-2xl font-semibold">Settings</h1>
-              <p className="text-sm opacity-80">Manage your account</p>
+              <p className="text-sm opacity-90">Manage your account preferences</p>
             </div>
           </div>
 
           <button
             onClick={() => navigate("/profile")}
-            className="flex items-center gap-2 bg-white text-[#006591] px-4 py-2 rounded-lg shadow hover:bg-gray-200 transition"
+            className="flex items-center gap-2 bg-white/20 hover:bg-white/30 px-4 py-2 rounded-xl transition"
           >
-            <ArrowLeft size={16} /> Back
+            <ArrowLeft size={18} /> Back to Profile
           </button>
         </div>
       </div>
 
       {/* CONTENT */}
-      <div className="max-w-5xl mx-auto px-6 py-6 space-y-6">
+      <div className="max-w-5xl mx-auto px-6 py-10 space-y-8">
 
-        {/* DARK MODE */}
-        <div className="bg-white dark:bg-gray-800 p-5 rounded-xl shadow flex justify-between items-center">
-          <div className="flex items-center gap-3">
-            {dark ? <Moon /> : <Sun />}
+        {/* Dark Mode Toggle */}
+        <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow flex justify-between items-center">
+          <div className="flex items-center gap-4">
+            {dark ? <Moon size={28} /> : <Sun size={28} />}
             <div>
-              <p className="font-semibold">Appearance</p>
-              <p className="text-sm text-gray-500 dark:text-gray-400">
-                Toggle dark / light mode
-              </p>
+              <p className="font-semibold text-lg">Appearance</p>
+              <p className="text-gray-500 dark:text-gray-400">Choose light or dark theme</p>
             </div>
           </div>
-
           <button
             onClick={() => setDark(!dark)}
-            className="bg-[#006591] text-white px-4 py-2 rounded-lg hover:opacity-90 transition"
+            className="bg-gray-100 dark:bg-gray-700 px-5 py-2.5 rounded-xl font-medium hover:bg-gray-200 dark:hover:bg-gray-600 transition"
           >
-            {dark ? "Light Mode" : "Dark Mode"}
+            {dark ? "Switch to Light Mode" : "Switch to Dark Mode"}
           </button>
         </div>
 
-        {/* CHANGE PASSWORD */}
-        <div className="bg-white dark:bg-gray-800 p-5 rounded-xl shadow flex justify-between items-center">
-          <div className="flex items-center gap-3">
-            <Lock />
+        {/* Change Password */}
+        <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow flex justify-between items-center">
+          <div className="flex items-center gap-4">
+            <Lock size={28} />
             <div>
-              <p className="font-semibold">Change Password</p>
-              <p className="text-sm text-gray-500 dark:text-gray-400">
-                Receive OTP and update password securely
-              </p>
+              <p className="font-semibold text-lg">Change Password</p>
+              <p className="text-gray-500 dark:text-gray-400">Securely update your password</p>
             </div>
           </div>
-
           <button
             onClick={handleOpenChangePassword}
             disabled={loading}
-            className={`px-4 py-2 rounded-lg text-white transition ${
-              loading
-                ? "bg-gray-400 cursor-not-allowed"
-                : "bg-[#cc5500] hover:bg-[#00557a]"
+            className={`px-6 py-2.5 rounded-xl text-white transition ${
+              loading ? "bg-gray-400" : "bg-[#cc5500] hover:bg-[#b34700]"
             }`}
           >
-            {loading ? "Processing..." : "Change"}
+            {loading ? "Sending OTP..." : "Change Password"}
           </button>
         </div>
 
-        {/* LOGIN ACTIVITY */}
-        <div className="bg-white dark:bg-gray-800 p-5 rounded-xl shadow">
-          <div className="flex items-center gap-2 mb-4">
-            <Activity size={18} />
-            <h2 className="font-semibold">Login Activity</h2>
+        {/* Login Activity */}
+        <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow">
+          <div className="flex items-center gap-3 mb-5">
+            <Activity size={24} />
+            <h2 className="font-semibold text-lg">Login Activity</h2>
           </div>
-
-          <div className="grid md:grid-cols-2 gap-4 text-sm">
+          <div className="grid md:grid-cols-2 gap-6 text-sm">
             <div>
-              <p className="text-gray-500 dark:text-gray-400">
-                First Login
-              </p>
-              <p className="font-semibold">
-                {user.firstLogin
-                  ? new Date(user.firstLogin).toLocaleString()
-                  : "Not available"}
+              <p className="text-gray-500 dark:text-gray-400">First Login</p>
+              <p className="font-medium mt-1">
+                {user.firstLogin ? new Date(user.firstLogin).toLocaleString() : "Not available"}
               </p>
             </div>
-
             <div>
-              <p className="text-gray-500 dark:text-gray-400">
-                Last Login
-              </p>
-              <p className="font-semibold">
-                {user.lastLogin
-                  ? new Date(user.lastLogin).toLocaleString()
-                  : "Not available"}
+              <p className="text-gray-500 dark:text-gray-400">Last Login</p>
+              <p className="font-medium mt-1">
+                {user.lastLogin ? new Date(user.lastLogin).toLocaleString() : "Never"}
               </p>
             </div>
           </div>
         </div>
 
-        {/* LOGOUT */}
-        <div className="bg-white dark:bg-gray-800 p-5 rounded-xl shadow flex justify-between items-center">
-          <div className="flex items-center gap-3">
-            <LogOut />
+        {/* Logout */}
+        <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow flex justify-between items-center">
+          <div className="flex items-center gap-4">
+            <LogOut size={28} className="text-red-500" />
             <div>
-              <p className="font-semibold">Logout</p>
-              <p className="text-sm text-gray-500 dark:text-gray-400">
-                Sign out from your account
-              </p>
+              <p className="font-semibold text-lg">Logout</p>
+              <p className="text-gray-500 dark:text-gray-400">Sign out from your account</p>
             </div>
           </div>
-
           <button
             onClick={handleLogout}
-            className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg transition"
+            className="bg-red-500 hover:bg-red-600 text-white px-6 py-2.5 rounded-xl transition"
           >
             Logout
           </button>
