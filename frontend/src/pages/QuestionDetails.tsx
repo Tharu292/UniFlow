@@ -1,70 +1,51 @@
 import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
-import api from "../Utils/axiosConfig";
-import PostAnswer from "../Components/PostAnswer";
-import AnswerCard from "../Components/AnswerCard";
-import { Answer } from "../Types";
+import { useParams, Link } from "react-router-dom";
+import api from "../api";
+import PostAnswer from "../components/PostAnswer";
+import AnswerCard from "../components/AnswerCard";
+import { ArrowLeft } from "lucide-react";
 
-export default function QuestionDetails() {
+export default function QuestionDetail() {
   const { id } = useParams();
-  const [answers, setAnswers] = useState<Answer[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [question, setQuestion] = useState<any>(null);
+  const [answers, setAnswers] = useState<any[]>([]);
+  const [refreshKey, setRefreshKey] = useState(0);
 
   const load = async () => {
-    try {
-      const res = await api.get(`/answers/${id}`);
-      setAnswers(res.data);
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setLoading(false);
-    }
+    const [qRes, aRes] = await Promise.all([
+      api.get(`/questions/${id}`),
+      api.get(`/answers/${id}`)
+    ]);
+    setQuestion(qRes.data);
+    setAnswers(aRes.data);
   };
 
-  useEffect(() => {
-    load();
-  }, []);
+  useEffect(() => { load(); }, [id, refreshKey]);
+
+  const refresh = () => setRefreshKey(k => k + 1);
+
+  if (!question) return <p className="text-center py-12">Loading...</p>;
 
   return (
-    <div className="min-h-screen bg-gray-100 py-8 px-4">
-      <div className="max-w-3xl mx-auto">
+    <div className="max-w-4xl mx-auto p-6">
+      <Link to="/forum" className="flex items-center gap-2 text-blue-600 mb-6 hover:underline">
+        <ArrowLeft size={20} /> Back to Forum
+      </Link>
 
-        {/* 🔷 Page Header */}
-        <div className="bg-white shadow-md rounded-xl p-6 mb-6">
-          <h1 className="text-2xl font-bold text-gray-800">
-            Answers
-          </h1>
-          <p className="text-gray-500 text-sm mt-1">
-            Help others by sharing your knowledge
-          </p>
-        </div>
-
-        {/* 🔷 Post Answer Section */}
-        <div className="bg-white shadow-md rounded-xl p-6 mb-6">
-          <h2 className="text-lg font-semibold mb-3 text-gray-700">
-            Your Answer
-          </h2>
-
-          <PostAnswer questionId={id} refresh={load} />
-        </div>
-
-        {/* 🔷 Answers List */}
-        <div className="space-y-4">
-
-          {loading ? (
-            <p className="text-center text-gray-500">Loading answers...</p>
-          ) : answers.length === 0 ? (
-            <div className="bg-white p-6 rounded-xl shadow text-center text-gray-500">
-              No answers yet. Be the first to answer!
-            </div>
-          ) : (
-            answers.map((a) => (
-              <AnswerCard key={a._id} a={a} refresh={load} />
-            ))
-          )}
-
+      <div className="bg-white rounded-2xl shadow p-8 mb-8">
+        <h1 className="text-3xl font-bold text-gray-800">{question.title}</h1>
+        <p className="text-gray-600 mt-4 leading-relaxed">{question.description}</p>
+        <div className="text-xs text-gray-400 mt-6">
+          Asked by {question.user.name}
         </div>
       </div>
+
+      <PostAnswer questionId={id} refresh={refresh} />
+
+      <h2 className="text-xl font-semibold mt-12 mb-6">Answers ({answers.length})</h2>
+      {answers.map(a => (
+        <AnswerCard key={a._id} a={a} refresh={refresh} />
+      ))}
     </div>
   );
 }

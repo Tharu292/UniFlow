@@ -1,7 +1,11 @@
 export interface User {
   _id: string;
-  name: string;
+  firstName?: string;
+  lastName?: string;
+  name: string;           // virtual from backend
   rank?: string;
+  points?: number;
+  badges?: string[];
 }
 
 export interface Question {

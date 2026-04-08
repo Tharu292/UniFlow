@@ -12,6 +12,8 @@ import userRoutesAdmin from "./routes/userRoutesAdmin";
 import resourceRoutes from "./routes/resourceRoutes";
 import notificationRoutes from "./routes/notificationRoutes";
 import taskRoutes from "./routes/tasks";
+import questionRoutes from "./routes/questionRoutes";
+import answerRoutes from "./routes/answerRoutes";
 
 dns.setServers(["8.8.8.8", "1.1.1.1"]);
 
@@ -34,6 +36,8 @@ app.use("/api/admin/users", userRoutesAdmin);
 app.use("/api/resources", resourceRoutes);
 app.use("/api/notifications", notificationRoutes);
 app.use("/api/tasks", taskRoutes);
+app.use("/api/questions", questionRoutes);
+app.use("/api/answers", answerRoutes);
 
 // --------------------
 // Root route

@@ -1,8 +1,8 @@
+// frontend/src/components/Footer.tsx
 export default function Footer() {
   return (
     <footer className="bg-[#006591] text-gray-200 py-12 mt-auto">
       <div className="max-w-7xl mx-auto px-6 grid md:grid-cols-4 gap-10 text-center md:text-left">
-
         {/* Brand */}
         <div>
           <h2 className="text-white text-xl font-semibold">UniFlow</h2>
@@ -26,17 +26,17 @@ export default function Footer() {
         <div>
           <h3 className="text-white font-medium">Quick Links</h3>
           <ul className="mt-3 space-y-2 text-sm">
-            <li>Dashboard</li>
-            <li>Resources</li>
-            <li>Forum</li>
-            <li>Profile</li>
+            <li><a href="/dashboard" className="hover:text-white">Dashboard</a></li>
+            <li><a href="/resources" className="hover:text-white">Resources</a></li>
+            <li><a href="/forum" className="hover:text-white">Forum</a></li>
+            <li><a href="/profile" className="hover:text-white">Profile</a></li>
           </ul>
         </div>
 
-        {/* Contact & Social */}
+        {/* Contact */}
         <div>
           <h3 className="text-white font-medium">Contact</h3>
-          {/*<p className="mt-3 text-sm">support@uniflow.com</p>*/}
+          <p className="mt-3 text-sm">support@uniflow.edu</p>
         </div>
       </div>
 
