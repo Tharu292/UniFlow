@@ -1,14 +1,14 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   FaTachometerAlt, 
   FaUsers, 
   FaBookOpen, 
   FaBell,
+  FaDatabase,
   FaSignOutAlt,
   FaUserFriends,
   FaGraduationCap,
   FaComments,
-  FaDatabase,
   FaCheckCircle,
   FaExclamationTriangle,
   FaEnvelope,
@@ -16,25 +16,11 @@ import {
   FaArrowDown
 } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
-
-// Dummy data for dashboard stats
-const recentUsers = [
-  { name: "Emily Johnson", email: "admin@uniflow.edu" },
-  { name: "Michael Chen", email: "mchen@uniflow.edu" },
-  { name: "Sarah Williams", email: "sarah@uniflow.edu" },
-  { name: "David Brown", email: "david@uniflow.edu" },
-  { name: "Lisa Anderson", email: "lisa@uniflow.edu" }
-];
-
-const systemAlerts = [
-  { icon: FaDatabase, color: "text-indigo-600", title: "Server storage capacity at 78%", subtitle: "system-storage-capacity-available-78%" },
-  { icon: FaCheckCircle, color: "text-green-600", title: "System backup completed successfully", subtitle: "system-backup-completed-successfully" },
-  { icon: FaExclamationTriangle, color: "text-yellow-600", title: "3 pending user notifications", subtitle: "pending-user-notifications" }
-];
+import api from '../api';   // Make sure this points to your axios instance with token
 
 interface StatsCardProps {
   title: string;
-  value: string;
+  value: string | number;
   icon: React.ElementType;
   iconBgColor: string;
   iconTextColor: string;
@@ -65,8 +51,56 @@ const StatsCard: React.FC<StatsCardProps> = ({ title, value, icon: Icon, iconBgC
   </div>
 );
 
-const Dashboard: React.FC = () => {
+const AdminDashboardContent: React.FC = () => {
   const navigate = useNavigate();
+
+  const [stats, setStats] = useState({
+    totalUsers: 0,
+    activeStudents: 0,
+    totalResources: 0,
+    forumPosts: 0,
+  });
+  const [recentUsers, setRecentUsers] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchDashboardData = async () => {
+      try {
+        // Fetch all needed stats in parallel
+        const [usersRes, studentsRes, resourcesRes, questionsRes, recentRes] = await Promise.all([
+          api.get('/user/all'),                    // or your admin users endpoint
+          api.get('/user/all'),                    // we'll filter students client-side for simplicity
+          api.get('/resources'),                   // adjust if your resources route is different
+          api.get('/questions'),
+          api.get('/user/all')                     // recent users (limit 5)
+        ]);
+
+        const allUsers = usersRes.data || [];
+        const students = allUsers.filter((u: any) => u.role === 'student');
+
+        setStats({
+          totalUsers: allUsers.length,
+          activeStudents: students.length,
+          totalResources: resourcesRes.data?.length || 0,
+          forumPosts: questionsRes.data?.length || 0,
+        });
+
+        // Recent users (last 5)
+        setRecentUsers(allUsers.slice(0, 5));
+
+      } catch (err) {
+        console.error("Failed to load dashboard data:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchDashboardData();
+  }, []);
+
+  if (loading) {
+    return <div className="p-8 text-center">Loading dashboard data...</div>;
+  }
 
   return (
     <div className="flex-1 px-6 lg:px-8 py-8 max-w-[1600px] mx-auto w-full">
@@ -77,24 +111,32 @@ const Dashboard: React.FC = () => {
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
         <StatsCard 
-          title="Total Users" value="2,847" icon={FaUserFriends}
-          iconBgColor="bg-indigo-50" iconTextColor="text-indigo-600"
-          trends={[{ value: "+23%", positive: true }, { value: "-42%", positive: false }]}
+          title="Total Users" 
+          value={stats.totalUsers} 
+          icon={FaUserFriends}
+          iconBgColor="bg-indigo-50" 
+          iconTextColor="text-indigo-600"
         />
         <StatsCard 
-          title="Active Students" value="2,654" icon={FaGraduationCap}
-          iconBgColor="bg-green-50" iconTextColor="text-green-600"
-          trends={[{ value: "+14%", positive: true }, { value: "-12%", positive: false }]}
+          title="Active Students" 
+          value={stats.activeStudents} 
+          icon={FaGraduationCap}
+          iconBgColor="bg-green-50" 
+          iconTextColor="text-green-600"
         />
         <StatsCard 
-          title="Total Resources" value="1,429" icon={FaBookOpen}
-          iconBgColor="bg-yellow-50" iconTextColor="text-yellow-600"
-          trends={[{ value: "+76.3%", positive: true }, { value: "-82%", positive: false }]}
+          title="Total Resources" 
+          value={stats.totalResources} 
+          icon={FaBookOpen}
+          iconBgColor="bg-yellow-50" 
+          iconTextColor="text-yellow-600"
         />
         <StatsCard 
-          title="Forum Posts" value="8,562" icon={FaComments}
-          iconBgColor="bg-blue-50" iconTextColor="text-blue-600"
-          trends={[{ value: "+42%", positive: true }]}
+          title="Forum Questions" 
+          value={stats.forumPosts} 
+          icon={FaComments}
+          iconBgColor="bg-blue-50" 
+          iconTextColor="text-blue-600"
         />
       </div>
 
@@ -113,19 +155,25 @@ const Dashboard: React.FC = () => {
             </button>
           </div>
           <ul className="divide-y divide-gray-100">
-            {recentUsers.map((user, idx) => (
-              <li key={idx} className="px-6 py-4 flex justify-between items-center hover:bg-gray-50 transition-colors">
-                <div>
-                  <span className="font-medium text-gray-800">{user.name}</span>
-                  <div className="text-xs text-gray-400">{user.email}</div>
-                </div>
-                <FaEnvelope className="text-gray-300 text-sm" />
-              </li>
-            ))}
+            {recentUsers.length > 0 ? (
+              recentUsers.map((u, idx) => (
+                <li key={idx} className="px-6 py-4 flex justify-between items-center hover:bg-gray-50 transition-colors">
+                  <div>
+                    <span className="font-medium text-gray-800">
+                      {u.firstName} {u.lastName}
+                    </span>
+                    <div className="text-xs text-gray-400">{u.email}</div>
+                  </div>
+                  <FaEnvelope className="text-gray-300 text-sm" />
+                </li>
+              ))
+            ) : (
+              <li className="px-6 py-8 text-center text-gray-500">No users found</li>
+            )}
           </ul>
         </div>
 
-        {/* System Alerts Card */}
+        {/* System Alerts Card - Kept as static for now */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
           <div className="px-6 py-4 border-b border-gray-200">
             <h3 className="font-semibold text-gray-800">
@@ -133,9 +181,13 @@ const Dashboard: React.FC = () => {
             </h3>
           </div>
           <div className="divide-y divide-gray-100">
-            {systemAlerts.map((alert, idx) => (
+            {[
+              { icon: FaDatabase, color: "text-indigo-600", title: "Server storage at 78%", subtitle: "Monitor capacity" },
+              { icon: FaCheckCircle, color: "text-green-600", title: "Backup completed", subtitle: "Last night" },
+              { icon: FaExclamationTriangle, color: "text-yellow-600", title: "Pending notifications", subtitle: "3 alerts" }
+            ].map((alert, idx) => (
               <div key={idx} className="px-6 py-4 flex items-start gap-3 hover:bg-gray-50 transition-colors">
-                <alert.icon className={`${alert.color} mt-0.5`} />
+                <alert.icon className={`${alert.color} mt-0.5 text-xl`} />
                 <div>
                   <p className="text-sm font-medium text-gray-700">{alert.title}</p>
                   <p className="text-xs text-gray-400">{alert.subtitle}</p>
@@ -177,7 +229,7 @@ const Dashboard: React.FC = () => {
       </div>
 
       <div className="mt-10 text-center text-xs text-gray-400 border-t border-gray-200 pt-6">
-        © 2024 UniFlow Admin Portal. All rights reserved.
+        © {new Date().getFullYear()} UniFlow Admin Portal. All rights reserved.
       </div>
     </div>
   );
@@ -208,7 +260,6 @@ const AdminDashboard: React.FC = () => {
               className="relative cursor-pointer hover:bg-gray-100 p-2 rounded-lg transition-colors"
             >
               <FaBell className="text-gray-500 text-lg hover:text-indigo-600 transition-colors" />
-              <span className="absolute -top-1 -right-2 bg-red-500 text-white text-[10px] font-bold rounded-full w-4 h-4 flex items-center justify-center">3</span>
             </button>
             <button 
               onClick={handleLogout}
@@ -228,33 +279,32 @@ const AdminDashboard: React.FC = () => {
         <div className="px-6 lg:px-8 flex space-x-8">
           <button 
             onClick={() => navigate('/admin/dashboard')}
-            className="py-3 text-sm font-semibold border-b-2 transition-all duration-200 flex items-center gap-2 border-indigo-600 text-indigo-700"
+            className="py-3 text-sm font-semibold border-b-2 border-indigo-600 text-indigo-700 flex items-center gap-2"
           >
             <FaTachometerAlt /> Dashboard
           </button>
           <button 
             onClick={() => navigate('/admin/users')}
-            className="py-3 text-sm font-semibold border-b-2 transition-all duration-200 flex items-center gap-2 border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+            className="py-3 text-sm font-semibold border-b-2 border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 flex items-center gap-2"
           >
-            <FaUsers /> User Management
+            <FaUsers /> Users
           </button>
           <button 
             onClick={() => navigate('/admin/notifications')}
-            className="py-3 text-sm font-semibold border-b-2 transition-all duration-200 flex items-center gap-2 border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+            className="py-3 text-sm font-semibold border-b-2 border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 flex items-center gap-2"
           >
             <FaBell /> Notifications
           </button>
           <button 
             onClick={() => navigate('/admin/resources')}
-            className="py-3 text-sm font-semibold border-b-2 transition-all duration-200 flex items-center gap-2 border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+            className="py-3 text-sm font-semibold border-b-2 border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 flex items-center gap-2"
           >
             <FaBookOpen /> Resources
           </button>
         </div>
       </div>
 
-      {/* Dashboard Content */}
-      <Dashboard />
+      <AdminDashboardContent />
     </div>
   );
 };
