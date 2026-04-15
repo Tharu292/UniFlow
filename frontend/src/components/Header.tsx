@@ -1,6 +1,6 @@
 // frontend/src/components/Header.tsx
 import { Link, useNavigate, useLocation } from "react-router-dom";
-import { Bell, User, Search, LayoutDashboard, BookOpen, Users, FolderOpen, Trophy, MessageSquare } from "lucide-react";
+import { Bell, User, LayoutDashboard, Users, FolderOpen, MessageSquare } from "lucide-react";
 import { useContext, useState, useEffect, useRef } from "react";
 import { AuthContext } from "../context/AuthContext";
 import logo from "../assets/logo.png";
@@ -132,6 +132,7 @@ export default function Header() {
               <Link to="/dashboard" className="hover:text-[#006591] transition">Dashboard</Link>
               <Link to="/resources" className="hover:text-[#006591] transition">Resources</Link>
               <Link to="/forum" className="hover:text-[#006591] transition">Forum</Link>
+              <Link to="/questions" className="hover:text-[#006591] transition">Questions</Link>
               <Link to="/leaderboard" className="hover:text-[#006591] transition">Leaderboard</Link>
             </>
           )}

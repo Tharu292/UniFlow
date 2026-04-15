@@ -32,6 +32,7 @@ import ResourceManagement from "./pages/AdminDashboard/ResourceManagement";
 // Cloned Repo Pages (for students)
 import Dashboard from "./pages/Dashboard";
 import Resources from "./pages/Resources";
+import QuestionList from "./pages/QuestionList";
 
 // --------------------
 // Protected Route
@@ -100,6 +101,7 @@ function App() {
             <Route path="/leaderboard" element={<ProtectedRoute><Leaderboard /></ProtectedRoute>} />
             <Route path="/question/:id" element={<ProtectedRoute><QuestionDetail /></ProtectedRoute>} />
             <Route path="/resources" element={<ProtectedRoute><Resources /></ProtectedRoute>} />
+            <Route path="/questions" element={<QuestionList />} />
 
             {/* Admin Protected Routes (NO Header & Footer) */}
             <Route path="/admin/dashboard" element={<ProtectedRoute><AdminDashboard /></ProtectedRoute>} />

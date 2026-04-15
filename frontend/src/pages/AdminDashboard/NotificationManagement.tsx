@@ -11,7 +11,6 @@ import {
   FaUsers,
   FaCalendarAlt,
   FaFlag,
-  FaEnvelope,
   FaTimes,
   FaSearch,
   FaSpinner,
@@ -30,7 +29,6 @@ const NotificationManagement = () => {
   const [statusFilter, setStatusFilter] = useState('all');
   const [audienceFilter, setAudienceFilter] = useState('all');
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
   const [editingNotification, setEditingNotification] = useState<any>(null);
   const [stats, setStats] = useState({
     total: 0,
@@ -48,7 +46,6 @@ const NotificationManagement = () => {
       }
     } catch (err: any) {
       console.error('Error fetching notifications:', err);
-      setError('Failed to load notifications');
     } finally {
       setLoading(false);
     }

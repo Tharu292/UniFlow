@@ -40,7 +40,6 @@ const ResourceManagement = () => {
   const isAdmin = user?.role === "admin";
 
   const [resources, setResources] = useState<Resource[]>([]);
-  const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(true);
   const [showUploadModal, setShowUploadModal] = useState(false);
 

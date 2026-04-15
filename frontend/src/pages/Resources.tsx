@@ -8,11 +8,8 @@ import AddResourceModal from '../components/AddResourceModal';
 import MyResources from '../components/MyResourceModal';
 import toast from 'react-hot-toast';
 import PdfPreviewModal from '../components/PdfPreviewModal';
-import { AuthContext } from '../context/AuthContext';
 
 export default function Resources() {
-  const { user } = useContext(AuthContext);
-
   const [resources, setResources] = useState<Resource[]>([]);
   const [myResources, setMyResources] = useState<Resource[]>([]);
   const [view, setView] = useState<'library' | 'my'>('library');
