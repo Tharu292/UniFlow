@@ -4,7 +4,6 @@ import {
   FaUsers, 
   FaBookOpen, 
   FaBell,
-  FaSignOutAlt,
   FaUserFriends,
   FaGraduationCap,
   FaComments,

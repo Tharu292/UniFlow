@@ -1,16 +1,13 @@
 // frontend/src/pages/Resources.tsx
-import { useState, useEffect, useContext } from 'react';
+import { useState, useEffect } from 'react';
 import { Plus, Search, BookOpen, Download, Eye } from 'lucide-react';
 import type { Resource } from '../types';
 import AddResourceModal from '../components/AddResourceModal';
 import MyResources from '../components/MyResourceModal';
 import toast from 'react-hot-toast';
 import PdfPreviewModal from '../components/PdfPreviewModal';
-import { AuthContext } from '../context/AuthContext';
 
 export default function Resources() {
-  const { user } = useContext(AuthContext);
-
   const [resources, setResources] = useState<Resource[]>([]);
   const [myResources, setMyResources] = useState<Resource[]>([]);
   const [view, setView] = useState<'library' | 'my'>('library');

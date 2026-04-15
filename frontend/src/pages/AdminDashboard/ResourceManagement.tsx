@@ -2,8 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { 
-  FaFilePdf, FaVideo, FaImage, FaLink, FaDownload, FaCheckCircle, 
-  FaClock, FaTimesCircle, FaSearch, FaUpload, FaEye, FaTrashAlt 
+  FaUpload, FaEye, FaTrashAlt 
 } from 'react-icons/fa';
 
 const API_URL = 'http://localhost:5000/api';
@@ -30,7 +29,6 @@ interface Resource {
 
 const ResourceManagement = () => {
   const [resources, setResources] = useState<Resource[]>([]);
-  const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(true);
   const [showUploadModal, setShowUploadModal] = useState(false);
 

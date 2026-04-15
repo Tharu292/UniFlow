@@ -3,16 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import {
   FaArrowLeft,
-  FaBell,
-  FaFlag,
-  FaEye,
-  FaCalendarAlt,
-  FaExclamationTriangle,
-  FaClock,
-  FaCheckCircle,
   FaSpinner,
-  FaUniversity,
-  FaGraduationCap
 } from 'react-icons/fa';
 import axios from 'axios';
 
@@ -40,7 +31,6 @@ const StudentNotifications: React.FC = () => {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-  const [user, setUser] = useState<User | null>(null);
 
   // ✅ Reset notification count
   useEffect(() => {
@@ -54,9 +44,8 @@ const StudentNotifications: React.FC = () => {
     if (userData) {
       try {
         const parsedUser: User = JSON.parse(userData);
-        setUser(parsedUser);
         fetchNotifications(parsedUser);
-      } catch (err) {
+      } catch {
         console.error('Invalid user data');
         setLoading(false);
       }
@@ -120,17 +109,6 @@ const StudentNotifications: React.FC = () => {
     return `${diffDays} days remaining`;
   };
 
-  const getPriorityColor = (priority: Notification['priority']) => {
-    switch (priority) {
-      case 'High':
-        return 'bg-red-100 text-red-800 border-red-200';
-      case 'Medium':
-        return 'bg-yellow-100 text-yellow-800 border-yellow-200';
-      default:
-        return 'bg-green-100 text-green-800 border-green-200';
-    }
-  };
-
   const sortedNotifications = [...notifications].sort((a, b) => {
     const aExpiring = isExpiringSoon(a.expiryDate);
     const bExpiring = isExpiringSoon(b.expiryDate);
@@ -178,8 +156,6 @@ const StudentNotifications: React.FC = () => {
           </p>
         ) : (
           sortedNotifications.map((notif: Notification) => {
-            const expiringSoon = isExpiringSoon(notif.expiryDate);
-
             return (
               <div key={notif._id} className="bg-white p-4 mb-4 rounded shadow">
                 <h3 className="font-bold">{notif.title}</h3>
