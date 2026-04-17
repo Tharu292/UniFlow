@@ -9,9 +9,10 @@ import EditModal from "./EditModal";
 
 const AnswerCard = ({ a, refresh }: { a: Answer; refresh: () => void }) => {
   const { user } = useContext(AuthContext);
-  
-  // Safe check for user ownership
-  const isOwner = user?._id === (typeof a.user === "object" && a.user ? a.user._id : a.user);
+
+  const isOwner =
+    user?._id ===
+    (typeof a.user === "object" && a.user ? a.user._id : a.user);
 
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
@@ -26,61 +27,52 @@ const AnswerCard = ({ a, refresh }: { a: Answer; refresh: () => void }) => {
   };
 
   const deleteAnswer = async () => {
-    if (!window.confirm("Are you sure you want to delete this answer?")) return;
+    if (!window.confirm("Delete this answer?")) return;
+
     try {
       await api.delete(`/answers/${a._id}`);
-      toast.success("Answer deleted successfully");
+      toast.success("Deleted successfully");
       refresh();
     } catch (err: any) {
-      toast.error(err.response?.data?.message || "Failed to delete answer");
+      toast.error(err.response?.data?.message || "Delete failed");
     }
   };
 
-  const handleUpdateAnswer = async (newContent: string) => {
-    await api.put(`/answers/${a._id}`, { content: newContent });
+  // ✅ FIXED: Correct parameter handling
+  const handleUpdateAnswer = async (data: { content?: string }) => {
+    await api.put(`/answers/${a._id}`, {
+      content: data.content,
+    });
+
     refresh();
   };
 
   return (
     <>
-      <div className="bg-white border rounded-2xl shadow-sm p-6 mt-4 flex gap-5 hover:shadow-md transition">
-        {/* Votes */}
+      <div className="bg-white border rounded-2xl shadow-sm p-6 mt-4 flex gap-5">
         <div className="flex flex-col items-center min-w-[70px] border-r pr-5">
-          <button
-            onClick={vote}
-            className="text-2xl text-gray-400 hover:text-green-600 transition"
-          >
-            ▲
-          </button>
-          <span className="text-2xl font-bold text-gray-800 my-1">{a.votes}</span>
-          <span className="text-xs text-gray-400">votes</span>
+          <button onClick={vote}>▲</button>
+          <span className="text-xl font-bold">{a.votes}</span>
         </div>
 
-        {/* Content */}
         <div className="flex-1">
-          <p className="text-gray-700 leading-relaxed">{a.content}</p>
+          <p>{a.content}</p>
 
-          <div className="flex justify-between items-center mt-5">
-            <div className="text-sm text-gray-500">
-              Answered by{" "}
-              {typeof a.user === "object" && a.user
-                ? a.user.name || `${a.user.firstName} ${a.user.lastName}`
+          <div className="flex justify-between mt-4">
+            <span className="text-sm text-gray-500">
+              {typeof a.user === "object"
+                ? `${a.user.firstName} ${a.user.lastName}`
                 : "Unknown"}
-            </div>
+            </span>
 
             {isOwner && (
               <div className="flex gap-3">
-                <button
-                  onClick={() => setIsEditModalOpen(true)}
-                  className="flex items-center gap-1 text-blue-600 hover:text-blue-700 text-sm"
-                >
-                  <Edit2 size={16} /> Edit
+                <button onClick={() => setIsEditModalOpen(true)}>
+                  <Edit2 size={16} />
                 </button>
-                <button
-                  onClick={deleteAnswer}
-                  className="flex items-center gap-1 text-red-600 hover:text-red-700 text-sm"
-                >
-                  <Trash2 size={16} /> Delete
+
+                <button onClick={deleteAnswer}>
+                  <Trash2 size={16} />
                 </button>
               </div>
             )}

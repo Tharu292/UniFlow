@@ -14,19 +14,16 @@ const toObjectId = (id: string | string[] | undefined): mongoose.Types.ObjectId 
 };
 
 
-// CREATE Resource
-// CREATE Resource (student or admin)
-// backend/src/controllers/resourceController.ts
-
-// In resourceController.ts → createResource function
-
+// ======================
+// CREATE RESOURCE
+// ======================
 export const createResource = async (req: AuthRequest, res: Response) => {
   try {
-    const file = req.file as any;
+    const isAdmin = req.user?.role === "admin";
 
     let tags: string[] = [];
     if (req.body.tags) {
-      tags = typeof req.body.tags === 'string' 
+      tags = typeof req.body.tags === 'string'
         ? req.body.tags.split(',').map((t: string) => t.trim()).filter(Boolean)
         : Array.isArray(req.body.tags) ? req.body.tags : [];
     }
@@ -34,28 +31,48 @@ export const createResource = async (req: AuthRequest, res: Response) => {
     const resourceData: any = {
       title: req.body.title?.trim(),
       description: req.body.description?.trim(),
-      type: req.body.type || 'PDF',
       subject: req.body.subject?.trim(),
-      uploadedBy: req.user?.name || 'Student',
+      uploadedBy: req.user?.name || `${req.user?.id}`,
       uploadedById: req.user ? new mongoose.Types.ObjectId(req.user.id) : undefined,
       tags,
       targetAudience: req.body.targetAudience || 'All Students',
       targetFaculty: req.body.targetFaculty,
       targetSemester: req.body.targetSemester,
       targetYear: req.body.targetYear,
-      status: 'approved',
+      status: isAdmin ? 'approved' : 'pending',
     };
 
-    if (req.file) {
-      resourceData.fileUrl = file.secure_url || file.path;
-      resourceData.fileName = file.originalname;
-    } else if (req.body.url) {
+    // ADMIN: Only URL allowed
+    if (isAdmin) {
+      if (!req.body.url) {
+        return res.status(400).json({ message: "Admin must provide a URL" });
+      }
       resourceData.url = req.body.url;
+      resourceData.type = 'Link';
+    } 
+    // STUDENT: File OR URL allowed
+    else {
+      if (req.file) {
+        resourceData.fileUrl = req.file.path;
+        resourceData.fileName = req.file.originalname;
+        resourceData.type = req.file.mimetype.includes('pdf') ? 'PDF' 
+                          : req.file.mimetype.includes('image') ? 'Image' 
+                          : 'Video';
+      } 
+      else if (req.body.url) {
+        resourceData.url = req.body.url;
+        resourceData.type = 'Link';
+      } 
+      else {
+        return res.status(400).json({ message: "Students must upload a file or provide a URL" });
+      }
     }
 
-    // Final safety check
     if (!resourceData.subject) {
-      return res.status(400).json({ error: "Subject is required" });
+      return res.status(400).json({ message: "Subject is required" });
+    }
+    if (!resourceData.title || !resourceData.description) {
+      return res.status(400).json({ message: "Title and description are required" });
     }
 
     const resource = await Resource.create(resourceData);
@@ -63,7 +80,7 @@ export const createResource = async (req: AuthRequest, res: Response) => {
 
   } catch (err: any) {
     console.error("Create Resource Error:", err);
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ message: err.message || "Failed to create resource" });
   }
 };
 // GET ALL Resources
@@ -134,20 +151,35 @@ export const updateResource = async (req: AuthRequest, res: Response) => {
   }
 };
 
-// DELETE Resource
+// backend/src/controllers/resourceController.ts
+
+// DELETE Resource - Allow both owner AND Admin
 export const deleteResource = async (req: AuthRequest, res: Response) => {
   try {
-    const resource = await Resource.findOneAndDelete({
-      _id: toObjectId(req.params.id),
-      uploadedById: new mongoose.Types.ObjectId(req.user!.id)
-    });
+    const resourceId = toObjectId(req.params.id);
+
+    // Find the resource first
+    const resource = await Resource.findById(resourceId);
 
     if (!resource) {
-      return res.status(404).json({ message: 'Resource not found or unauthorized' });
+      return res.status(404).json({ message: 'Resource not found' });
     }
+
+    // Allow deletion if:
+    // 1. User is the uploader (owner), OR
+    // 2. User is Admin
+    const isOwner = resource.uploadedById?.toString() === req.user!.id;
+    const isAdmin = req.user!.role === "admin";
+
+    if (!isOwner && !isAdmin) {
+      return res.status(403).json({ message: 'You are not authorized to delete this resource' });
+    }
+
+    await Resource.findByIdAndDelete(resourceId);
 
     res.json({ message: 'Resource deleted successfully' });
   } catch (err: any) {
+    console.error("Delete Resource Error:", err);
     res.status(500).json({ error: err.message });
   }
 };

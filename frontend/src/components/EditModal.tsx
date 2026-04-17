@@ -8,7 +8,7 @@ interface EditModalProps {
   initialTitle?: string;
   initialDescription?: string;
   initialContent?: string;
-  onSave: (data: any) => Promise<void>;
+  onSave: (data: { title?: string; description?: string; content?: string }) => Promise<void>;
   type: "question" | "answer";
 }
 
@@ -21,9 +21,9 @@ export default function EditModal({
   onSave,
   type,
 }: EditModalProps) {
-  const [title, setTitle] = useState(initialTitle);
-  const [description, setDescription] = useState(initialDescription);
-  const [content, setContent] = useState(initialContent);
+  const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
+  const [content, setContent] = useState("");
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -34,67 +34,56 @@ export default function EditModal({
     }
   }, [isOpen, initialTitle, initialDescription, initialContent]);
 
-  // ✅ Fixed regex (no range error)
   const validPattern = /^[a-zA-Z0-9\s?.!,\-'"()]+$/;
 
   const handleSave = async () => {
-    if (type === "question") {
-      const titleTrim = title.trim();
-      const descTrim = description.trim();
+    try {
+      if (type === "question") {
+        const titleTrim = title.trim();
+        const descTrim = description.trim();
 
-      if (!titleTrim || !descTrim) {
-        toast.error("Title and description cannot be empty");
-        return;
-      }
+        if (!titleTrim || !descTrim) {
+          return toast.error("Title and description cannot be empty");
+        }
 
-      if (/^\d+$/.test(titleTrim) || /^\d+$/.test(descTrim)) {
-        toast.error("Cannot contain only numbers. Please include letters.");
-        return;
-      }
+        if (/^\d+$/.test(titleTrim) || /^\d+$/.test(descTrim)) {
+          return toast.error("Cannot contain only numbers");
+        }
 
-      if (!validPattern.test(titleTrim) || !validPattern.test(descTrim)) {
-        toast.error("Only letters, numbers, spaces and common punctuation allowed");
-        return;
-      }
+        if (!validPattern.test(titleTrim) || !validPattern.test(descTrim)) {
+          return toast.error("Invalid characters used");
+        }
 
-      setLoading(true);
-      try {
+        setLoading(true);
         await onSave({ title: titleTrim, description: descTrim });
-        toast.success("Question updated successfully!");
+
+        toast.success("Question updated!");
         onClose();
-      } catch (err: any) {
-        toast.error(err.response?.data?.message || "Failed to update");
-      } finally {
-        setLoading(false);
-      }
-    } else {
-      const contentTrim = content.trim();
+      } else {
+        const contentTrim = content.trim();
 
-      if (!contentTrim || contentTrim.length < 20) {
-        toast.error("Answer must be at least 20 characters");
-        return;
-      }
+        if (!contentTrim || contentTrim.length < 10) {
+          return toast.error("Answer must be at least 10 characters");
+        }
 
-      if (/^\d+$/.test(contentTrim)) {
-        toast.error("Cannot contain only numbers");
-        return;
-      }
+        if (/^\d+$/.test(contentTrim)) {
+          return toast.error("Cannot contain only numbers");
+        }
 
-      if (!validPattern.test(contentTrim)) {
-        toast.error("Only letters, numbers, spaces and common punctuation allowed");
-        return;
-      }
+        if (!validPattern.test(contentTrim)) {
+          return toast.error("Invalid characters used");
+        }
 
-      setLoading(true);
-      try {
+        setLoading(true);
         await onSave({ content: contentTrim });
-        toast.success("Answer updated successfully!");
+
+        toast.success("Answer updated!");
         onClose();
-      } catch (err: any) {
-        toast.error(err.response?.data?.message || "Failed to update");
-      } finally {
-        setLoading(false);
       }
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || "Update failed");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -109,47 +98,43 @@ export default function EditModal({
 
         {type === "question" ? (
           <>
-            <div className="mb-4">
-              <label className="block text-sm font-medium text-gray-600 mb-1">Title</label>
-              <input
-                type="text"
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                className="w-full p-4 border rounded-xl focus:outline-none focus:ring-2 focus:ring-[#006591]"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-600 mb-1">Description</label>
-              <textarea
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                rows={6}
-                className="w-full p-4 border rounded-xl focus:outline-none focus:ring-2 focus:ring-[#006591]"
-              />
-            </div>
+            <input
+              type="text"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              placeholder="Title"
+              className="w-full p-4 border rounded-xl mb-4"
+            />
+
+            <textarea
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              rows={5}
+              placeholder="Description"
+              className="w-full p-4 border rounded-xl"
+            />
           </>
         ) : (
           <textarea
             value={content}
             onChange={(e) => setContent(e.target.value)}
-            rows={8}
-            className="w-full p-4 border rounded-xl focus:outline-none focus:ring-2 focus:ring-[#006591]"
+            rows={6}
+            placeholder="Edit your answer..."
+            className="w-full p-4 border rounded-xl"
           />
         )}
 
-        <div className="flex gap-4 mt-8">
-          <button
-            onClick={onClose}
-            className="flex-1 py-3 border border-gray-300 rounded-xl hover:bg-gray-50 font-medium"
-          >
+        <div className="flex gap-4 mt-6">
+          <button onClick={onClose} className="flex-1 border py-3 rounded-xl">
             Cancel
           </button>
+
           <button
             onClick={handleSave}
             disabled={loading}
-            className="flex-1 py-3 bg-[#006591] text-white rounded-xl hover:bg-[#005580] disabled:opacity-70 font-medium"
+            className="flex-1 bg-[#006591] text-white py-3 rounded-xl"
           >
-            {loading ? "Saving..." : "Save Changes"}
+            {loading ? "Saving..." : "Save"}
           </button>
         </div>
       </div>
