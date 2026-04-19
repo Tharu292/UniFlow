@@ -1,11 +1,8 @@
 // frontend/src/pages/Settings.tsx
 import { useContext, useState } from "react";
-import { ThemeContext } from "../context/ThemeContext";
 import { AuthContext } from "../context/AuthContext";
 import { useNavigate } from "react-router-dom";
 import {
-  Moon,
-  Sun,
   LogOut,
   Activity,
   Settings as SettingsIcon,
@@ -16,14 +13,10 @@ import api from "../api";
 import toast from "react-hot-toast";
 
 export default function Settings() {
-  const themeContext = useContext(ThemeContext);
   const authContext = useContext(AuthContext);
   const navigate = useNavigate();
 
-  const dark = themeContext?.dark ?? false;
-  const setDark = themeContext?.setDark ?? (() => {});
   const user = authContext?.user ?? null;
-  const setUser = authContext?.setUser ?? (() => {});
 
   const [loading, setLoading] = useState(false);
 
@@ -51,15 +44,17 @@ export default function Settings() {
 
   const handleLogout = () => {
     localStorage.clear();
-    setUser(null);
+    authContext?.setUser?.(null);
     navigate("/login");
   };
 
-  if (!user) return <p className="text-center mt-10">Loading...</p>;
+  if (!user) {
+    return <p className="text-center mt-10 text-gray-500">Loading...</p>;
+  }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors">
-      {/* HEADER */}
+    <div className="min-h-screen bg-gray-50">
+      {/* HEADER - Same gradient as other pages */}
       <div className="bg-gradient-to-r from-[#006591] to-[#cc5500] text-white py-6">
         <div className="max-w-7xl mx-auto px-6 flex justify-between items-center">
           <div className="flex items-center gap-3">
@@ -82,37 +77,20 @@ export default function Settings() {
       {/* CONTENT */}
       <div className="max-w-5xl mx-auto px-6 py-10 space-y-8">
 
-        {/* Dark Mode Toggle */}
-        <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow flex justify-between items-center">
-          <div className="flex items-center gap-4">
-            {dark ? <Moon size={28} /> : <Sun size={28} />}
-            <div>
-              <p className="font-semibold text-lg">Appearance</p>
-              <p className="text-gray-500 dark:text-gray-400">Choose light or dark theme</p>
-            </div>
-          </div>
-          <button
-            onClick={() => setDark(!dark)}
-            className="bg-gray-100 dark:bg-gray-700 px-5 py-2.5 rounded-xl font-medium hover:bg-gray-200 dark:hover:bg-gray-600 transition"
-          >
-            {dark ? "Switch to Light Mode" : "Switch to Dark Mode"}
-          </button>
-        </div>
-
         {/* Change Password */}
-        <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow flex justify-between items-center">
+        <div className="bg-white rounded-2xl p-6 shadow flex justify-between items-center">
           <div className="flex items-center gap-4">
-            <Lock size={28} />
+            <Lock size={28} className="text-gray-700" />
             <div>
-              <p className="font-semibold text-lg">Change Password</p>
-              <p className="text-gray-500 dark:text-gray-400">Securely update your password</p>
+              <p className="font-semibold text-lg text-gray-900">Change Password</p>
+              <p className="text-gray-500">Securely update your password</p>
             </div>
           </div>
           <button
             onClick={handleOpenChangePassword}
             disabled={loading}
             className={`px-6 py-2.5 rounded-xl text-white transition ${
-              loading ? "bg-gray-400" : "bg-[#cc5500] hover:bg-[#b34700]"
+              loading ? "bg-gray-400 cursor-not-allowed" : "bg-[#cc5500] hover:bg-[#b34700]"
             }`}
           >
             {loading ? "Sending OTP..." : "Change Password"}
@@ -120,21 +98,21 @@ export default function Settings() {
         </div>
 
         {/* Login Activity */}
-        <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow">
+        <div className="bg-white rounded-2xl p-6 shadow">
           <div className="flex items-center gap-3 mb-5">
-            <Activity size={24} />
-            <h2 className="font-semibold text-lg">Login Activity</h2>
+            <Activity size={24} className="text-gray-700" />
+            <h2 className="font-semibold text-lg text-gray-900">Login Activity</h2>
           </div>
           <div className="grid md:grid-cols-2 gap-6 text-sm">
             <div>
-              <p className="text-gray-500 dark:text-gray-400">First Login</p>
-              <p className="font-medium mt-1">
+              <p className="text-gray-500">First Login</p>
+              <p className="font-medium mt-1 text-gray-900">
                 {user.firstLogin ? new Date(user.firstLogin).toLocaleString() : "Not available"}
               </p>
             </div>
             <div>
-              <p className="text-gray-500 dark:text-gray-400">Last Login</p>
-              <p className="font-medium mt-1">
+              <p className="text-gray-500">Last Login</p>
+              <p className="font-medium mt-1 text-gray-900">
                 {user.lastLogin ? new Date(user.lastLogin).toLocaleString() : "Never"}
               </p>
             </div>
@@ -142,12 +120,12 @@ export default function Settings() {
         </div>
 
         {/* Logout */}
-        <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow flex justify-between items-center">
+        <div className="bg-white rounded-2xl p-6 shadow flex justify-between items-center">
           <div className="flex items-center gap-4">
             <LogOut size={28} className="text-red-500" />
             <div>
-              <p className="font-semibold text-lg">Logout</p>
-              <p className="text-gray-500 dark:text-gray-400">Sign out from your account</p>
+              <p className="font-semibold text-lg text-gray-900">Logout</p>
+              <p className="text-gray-500">Sign out from your account</p>
             </div>
           </div>
           <button

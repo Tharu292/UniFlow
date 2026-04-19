@@ -1,9 +1,7 @@
-// frontend/src/components/AddResourceModal.tsx
 import { useState, useEffect, useContext } from 'react';
 import { X } from 'lucide-react';
 import type { Resource } from '../types';
 import { AuthContext } from '../context/AuthContext';
-import toast from 'react-hot-toast';
 
 interface Props {
   isOpen: boolean;
@@ -11,6 +9,8 @@ interface Props {
   onAdd: (resource: any, file?: File) => void;
   editingResource?: Resource | null;
 }
+
+type TargetAudience = "All Students" | "By Faculty" | "By Semester" | "By Year";
 
 export default function AddResourceModal({
   isOpen,
@@ -26,11 +26,11 @@ export default function AddResourceModal({
     description: '',
     subject: '',
     type: 'PDF' as 'PDF' | 'Image' | 'Video' | 'Link',
-    targetAudience: 'All Students' as 'All Students' | 'By Faculty' | 'By Semester' | 'By Year',
+    targetAudience: 'All Students' as TargetAudience,
     targetFaculty: '',
-    targetSemester: '',
     targetYear: '',
-    tags: '',                    // comma separated
+    targetSemester: '',
+    tags: '',
     url: '',
     file: null as File | null,
   });
@@ -44,10 +44,10 @@ export default function AddResourceModal({
         description: editingResource.description || '',
         subject: editingResource.subject || '',
         type: (editingResource.type as any) || 'PDF',
-        targetAudience: (editingResource.targetAudience as any) || 'All Students',
+        targetAudience: (editingResource.targetAudience as TargetAudience) || 'All Students',
         targetFaculty: editingResource.targetFaculty || '',
-        targetSemester: editingResource.targetSemester || '',
         targetYear: editingResource.targetYear || '',
+        targetSemester: editingResource.targetSemester || '',
         tags: Array.isArray(editingResource.tags) ? editingResource.tags.join(', ') : '',
         url: editingResource.url || '',
         file: null,
@@ -60,8 +60,8 @@ export default function AddResourceModal({
         type: 'PDF',
         targetAudience: 'All Students',
         targetFaculty: '',
-        targetSemester: '',
         targetYear: '',
+        targetSemester: '',
         tags: '',
         url: '',
         file: null,
@@ -72,7 +72,6 @@ export default function AddResourceModal({
 
   if (!isOpen) return null;
 
-  // Validation: Cannot be only numbers (must contain at least one letter)
   const isOnlyNumbers = (str: string): boolean => {
     return str.trim() !== '' && /^\d+$/.test(str.trim());
   };
@@ -81,32 +80,19 @@ export default function AddResourceModal({
     e.preventDefault();
     const newErrors: Record<string, string> = {};
 
-    if (!form.title.trim()) {
-      newErrors.title = 'Title is required';
-    } else if (isOnlyNumbers(form.title)) {
-      newErrors.title = 'Title cannot contain only numbers';
-    }
+    if (!form.title.trim()) newErrors.title = 'Title is required';
+    else if (isOnlyNumbers(form.title)) newErrors.title = 'Title cannot contain only numbers';
 
-    if (!form.description.trim()) {
-      newErrors.description = 'Description is required';
-    } else if (isOnlyNumbers(form.description)) {
-      newErrors.description = 'Description cannot contain only numbers';
-    }
+    if (!form.description.trim()) newErrors.description = 'Description is required';
+    else if (isOnlyNumbers(form.description)) newErrors.description = 'Description cannot contain only numbers';
 
-    if (!form.subject.trim()) {
-      newErrors.subject = 'Subject is required';
-    }
-
-    if (isAdmin && !form.url.trim()) {
-      newErrors.url = 'URL is required for admins';
-    }
+    if (!form.subject.trim()) newErrors.subject = 'Subject is required';
 
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
       return;
     }
 
-    // Convert comma-separated tags to array
     const tagsArray = form.tags
       .split(',')
       .map(tag => tag.trim())
@@ -119,25 +105,34 @@ export default function AddResourceModal({
       type: form.type,
       targetAudience: form.targetAudience,
       targetFaculty: form.targetFaculty || undefined,
-      targetSemester: form.targetSemester || undefined,
       targetYear: form.targetYear || undefined,
+      targetSemester: form.targetSemester || undefined,
       tags: tagsArray,
       url: form.url.trim() || undefined,
     };
 
     onAdd(newResource, !isAdmin && form.file ? form.file : undefined);
     onClose();
-    toast.success(editingResource ? 'Resource updated successfully!' : 'Resource uploaded successfully!');
+  };
+
+  // Handle target audience change - reset dependent fields
+  const handleTargetAudienceChange = (value: TargetAudience) => {
+    setForm({
+      ...form,
+      targetAudience: value,
+      targetFaculty: '',
+      targetYear: '',
+      targetSemester: '',
+    });
   };
 
   return (
     <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-3xl w-full max-w-lg max-h-[90vh] shadow-2xl overflow-hidden flex flex-col">
         
-        {/* Fixed Header */}
         <div className="flex justify-between items-center p-6 border-b bg-white sticky top-0 z-10">
           <h2 className="text-2xl font-semibold text-gray-900">
-            {editingResource ? 'Edit Resource' : isAdmin ? 'Add URL Resource' : 'Upload New Resource'}
+            {editingResource ? 'Edit Resource' : 'Upload New Resource'}
           </h2>
           <button 
             onClick={onClose} 
@@ -147,7 +142,6 @@ export default function AddResourceModal({
           </button>
         </div>
 
-        {/* Scrollable Content */}
         <div className="overflow-y-auto flex-1 p-6 space-y-6 custom-scrollbar">
           
           <div>
@@ -157,7 +151,6 @@ export default function AddResourceModal({
               onChange={(e) => setForm({ ...form, title: e.target.value })}
               className="w-full border border-gray-300 p-3 rounded-2xl focus:outline-none focus:border-[#006591]"
               placeholder="Enter resource title"
-              required
             />
             {errors.title && <p className="text-red-500 text-xs mt-1">{errors.title}</p>}
           </div>
@@ -169,7 +162,6 @@ export default function AddResourceModal({
               onChange={(e) => setForm({ ...form, subject: e.target.value })}
               className="w-full border border-gray-300 p-3 rounded-2xl focus:outline-none focus:border-[#006591]"
               placeholder="e.g. Data Structures, Calculus"
-              required
             />
             {errors.subject && <p className="text-red-500 text-xs mt-1">{errors.subject}</p>}
           </div>
@@ -190,18 +182,14 @@ export default function AddResourceModal({
 
           {(form.type === 'Link' || isAdmin) && (
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                URL {isAdmin && <span className="text-red-500">*</span>}
-              </label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">URL</label>
               <input
                 type="url"
                 value={form.url}
                 onChange={(e) => setForm({ ...form, url: e.target.value })}
                 className="w-full border border-gray-300 p-3 rounded-2xl focus:outline-none focus:border-[#006591]"
                 placeholder="https://example.com/resource"
-                required={isAdmin}
               />
-              {errors.url && <p className="text-red-500 text-xs mt-1">{errors.url}</p>}
             </div>
           )}
 
@@ -224,12 +212,10 @@ export default function AddResourceModal({
               onChange={(e) => setForm({ ...form, description: e.target.value })}
               className="w-full border border-gray-300 p-3 rounded-2xl h-28 focus:outline-none focus:border-[#006591]"
               placeholder="Brief description of the resource..."
-              required
             />
             {errors.description && <p className="text-red-500 text-xs mt-1">{errors.description}</p>}
           </div>
 
-          {/* Tags */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Tags <span className="text-gray-400 text-xs">(comma separated)</span>
@@ -244,11 +230,12 @@ export default function AddResourceModal({
             <p className="text-xs text-gray-500 mt-1">Separate tags with commas</p>
           </div>
 
+          {/* Target Audience */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Target Audience</label>
             <select
               value={form.targetAudience}
-              onChange={(e) => setForm({ ...form, targetAudience: e.target.value as any })}
+              onChange={(e) => handleTargetAudienceChange(e.target.value as TargetAudience)}
               className="w-full border border-gray-300 p-3 rounded-2xl focus:outline-none focus:border-[#006591]"
             >
               <option value="All Students">All Students</option>
@@ -257,9 +244,91 @@ export default function AddResourceModal({
               <option value="By Year">By Year</option>
             </select>
           </div>
+
+          {/* Cascading Fields - Faculty → Year → Semester */}
+          {form.targetAudience === "By Faculty" && (
+            <>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Faculty</label>
+                <select
+                  value={form.targetFaculty}
+                  onChange={(e) => setForm({ ...form, targetFaculty: e.target.value })}
+                  className="w-full border border-gray-300 p-3 rounded-2xl focus:outline-none focus:border-[#006591]"
+                >
+                  <option value="">Select Faculty</option>
+                  <option value="Computing">Computing</option>
+                  <option value="Business">Business</option>
+                  <option value="Engineering">Engineering</option>
+                  <option value="Humanities and Sciences">Humanities and Sciences</option>
+                  <option value="Architecture">Architecture</option>
+                </select>
+              </div>
+
+              {form.targetFaculty && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Year</label>
+                  <select
+                    value={form.targetYear}
+                    onChange={(e) => setForm({ ...form, targetYear: e.target.value })}
+                    className="w-full border border-gray-300 p-3 rounded-2xl focus:outline-none focus:border-[#006591]"
+                  >
+                    <option value="">Select Year</option>
+                    <option value="Year 1">Year 1</option>
+                    <option value="Year 2">Year 2</option>
+                  </select>
+                </div>
+              )}
+
+              {form.targetFaculty && form.targetYear && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Semester</label>
+                  <select
+                    value={form.targetSemester}
+                    onChange={(e) => setForm({ ...form, targetSemester: e.target.value })}
+                    className="w-full border border-gray-300 p-3 rounded-2xl focus:outline-none focus:border-[#006591]"
+                  >
+                    <option value="">Select Semester</option>
+                    <option value="Semester 1">Semester 1</option>
+                    <option value="Semester 2">Semester 2</option>
+                  </select>
+                </div>
+              )}
+            </>
+          )}
+
+          {/* If user selects By Year directly */}
+          {form.targetAudience === "By Year" && !form.targetFaculty && (
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Year</label>
+              <select
+                value={form.targetYear}
+                onChange={(e) => setForm({ ...form, targetYear: e.target.value })}
+                className="w-full border border-gray-300 p-3 rounded-2xl focus:outline-none focus:border-[#006591]"
+              >
+                <option value="">Select Year</option>
+                <option value="Year 1">Year 1</option>
+                <option value="Year 2">Year 2</option>
+              </select>
+            </div>
+          )}
+
+          {/* If user selects By Semester directly */}
+          {form.targetAudience === "By Semester" && (
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Semester</label>
+              <select
+                value={form.targetSemester}
+                onChange={(e) => setForm({ ...form, targetSemester: e.target.value })}
+                className="w-full border border-gray-300 p-3 rounded-2xl focus:outline-none focus:border-[#006591]"
+              >
+                <option value="">Select Semester</option>
+                <option value="Semester 1">Semester 1</option>
+                <option value="Semester 2">Semester 2</option>
+              </select>
+            </div>
+          )}
         </div>
 
-        {/* Fixed Footer Buttons */}
         <div className="p-6 border-t bg-white sticky bottom-0">
           <div className="flex gap-4">
             <button
@@ -270,7 +339,7 @@ export default function AddResourceModal({
               Cancel
             </button>
             <button
-              type="button"   // Changed from submit to button + onClick for consistency
+              type="button"
               onClick={handleSubmit}
               className="flex-1 bg-[#006591] text-white py-3.5 rounded-2xl font-semibold hover:bg-[#00557a] transition"
             >
