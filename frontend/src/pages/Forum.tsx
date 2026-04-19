@@ -1,13 +1,13 @@
 // src/pages/Forum.tsx
 import { useEffect, useState } from "react";
-import { MessageSquare, Search } from "lucide-react";
+import { MessageSquare, Search, Plus } from "lucide-react";
 import api from "../api";
-import PostQuestion from "../components/PostQuestion";
 import QuestionCard from "../components/QuestionCard";
 import type { Question } from "../types";
 import toast from "react-hot-toast";
 import { useContext } from "react";
 import { AuthContext } from "../context/AuthContext";
+import CreateQuestionModal from "../components/CreateQuestionModal";
 
 export default function Forum() {
   const { user } = useContext(AuthContext);
@@ -17,6 +17,7 @@ export default function Forum() {
   const [filteredQuestions, setFilteredQuestions] = useState<Question[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(true);
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
 
   const load = async () => {
     try {
@@ -47,7 +48,7 @@ export default function Forum() {
   return (
     <div className="min-h-screen bg-gray-100 py-8 px-4">
       <div className="max-w-4xl mx-auto">
-        {/* Dynamic Header */}
+        {/* Header */}
         <div className="bg-white shadow-md rounded-2xl p-6 mb-8">
           <div className="flex items-center gap-3">
             <MessageSquare size={32} className="text-[#006591]" />
@@ -64,7 +65,20 @@ export default function Forum() {
           </div>
         </div>
 
-        {/* Search Bar (kept for students, hidden for admin as per "remove search bar" request - but you can toggle) */}
+        {/* Post Question Button - Only for Students */}
+        {!isAdmin && (
+          <div className="mb-8 flex justify-end">
+            <button
+              onClick={() => setIsCreateModalOpen(true)}
+              className="flex items-center gap-3 bg-[#006591] hover:bg-[#005580] text-white px-6 py-3.5 rounded-2xl font-medium shadow-md transition-all active:scale-95"
+            >
+              <Plus size={22} />
+              Post a Question
+            </button>
+          </div>
+        )}
+
+        {/* Search Bar */}
         {!isAdmin && (
           <div className="relative mb-8">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
@@ -78,16 +92,13 @@ export default function Forum() {
           </div>
         )}
 
-        {/* Only students can post new questions */}
-        {!isAdmin && <PostQuestion refresh={load} />}
-
         {/* Questions List */}
-        <div className="space-y-6 mt-8">
+        <div className="space-y-6">
           {loading ? (
             <p className="text-center text-gray-500 py-12">Loading questions...</p>
           ) : filteredQuestions.length === 0 ? (
             <div className="bg-white p-12 rounded-2xl text-center text-gray-500">
-              {searchTerm ? "No questions match your search." : "No questions yet."}
+              {searchTerm ? "No questions match your search." : "No questions yet. Be the first to ask!"}
             </div>
           ) : (
             filteredQuestions.map((q) => (
@@ -96,6 +107,13 @@ export default function Forum() {
           )}
         </div>
       </div>
+
+      {/* Create Question Modal */}
+      <CreateQuestionModal
+        isOpen={isCreateModalOpen}
+        onClose={() => setIsCreateModalOpen(false)}
+        refresh={load}
+      />
     </div>
   );
 }

@@ -1,9 +1,9 @@
+// frontend/src/pages/Resources.tsx
 import { useState, useEffect, useContext, useMemo } from 'react';
-import { 
-  Plus, Search, BookOpen, Download, Eye, Link as LinkIcon, X 
-} from 'lucide-react';
+import { Plus, Search, BookOpen, X } from 'lucide-react';
 import type { Resource } from '../types';
 import AddResourceModal from '../components/AddResourceModal';
+import ResourceCard from '../components/ResourceCard';
 import MyResources from '../components/MyResourceModal';
 import toast from 'react-hot-toast';
 import PdfPreviewModal from '../components/PdfPreviewModal';
@@ -53,16 +53,11 @@ export default function Resources() {
       if (editingResource) {
         const res = await fetch(`${BASE_URL}/api/resources/${editingResource._id}`, {
           method: 'PUT',
-          headers: {
-            Authorization: `Bearer ${token}`,
-            'Content-Type': 'application/json',
-          },
+          headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
           body: JSON.stringify(newResource),
         });
-
         if (!res.ok) throw new Error('Update failed');
         const data = await res.json();
-
         setResources(prev => prev.map(r => r._id === editingResource._id ? data : r));
         setMyResources(prev => prev.map(r => r._id === editingResource._id ? data : r));
         toast.success('Resource updated successfully!');
@@ -84,10 +79,8 @@ export default function Resources() {
           headers: { Authorization: `Bearer ${token}` },
           body: formData,
         });
-
         if (!res.ok) throw new Error('Upload failed');
         const data = await res.json();
-
         setResources(prev => [...prev, data]);
         setMyResources(prev => [...prev, data]);
         toast.success('Resource uploaded successfully!');
@@ -137,7 +130,6 @@ export default function Resources() {
     else toast.error("No valid link available");
   };
 
-  // Clear all filters
   const clearFilters = () => {
     setSearch('');
     setMySearch('');
@@ -147,12 +139,10 @@ export default function Resources() {
     setSemesterFilter('All');
   };
 
-  // Filter Logic for Library
   const filteredLibrary = useMemo(() => {
     return resources.filter(r => {
       const matchesSearch = r.title.toLowerCase().includes(search.toLowerCase()) ||
                            r.subject.toLowerCase().includes(search.toLowerCase());
-
       const matchesType = typeFilter === 'All' || r.type === typeFilter;
       const matchesFaculty = facultyFilter === 'All' || r.targetFaculty === facultyFilter;
       const matchesYear = yearFilter === 'All' || r.targetYear === yearFilter;
@@ -162,12 +152,10 @@ export default function Resources() {
     });
   }, [resources, search, typeFilter, facultyFilter, yearFilter, semesterFilter]);
 
-  // Filter Logic for My Resources
   const filteredMyResources = useMemo(() => {
     return myResources.filter(r => {
       const matchesSearch = r.title.toLowerCase().includes(mySearch.toLowerCase()) ||
                            r.subject.toLowerCase().includes(mySearch.toLowerCase());
-
       const matchesType = typeFilter === 'All' || r.type === typeFilter;
       const matchesFaculty = facultyFilter === 'All' || r.targetFaculty === facultyFilter;
       const matchesYear = yearFilter === 'All' || r.targetYear === yearFilter;
@@ -177,15 +165,9 @@ export default function Resources() {
     });
   }, [myResources, mySearch, typeFilter, facultyFilter, yearFilter, semesterFilter]);
 
-  const fileResources = filteredLibrary.filter(r => ['PDF', 'Image', 'Video'].includes(r.type || ''));
-  const linkResources = filteredLibrary.filter(r => r.type === 'Link');
-
-  // Check if any filter is active
   const hasActiveFilters = search || mySearch || 
-    typeFilter !== 'All' || 
-    facultyFilter !== 'All' || 
-    yearFilter !== 'All' || 
-    semesterFilter !== 'All';
+    typeFilter !== 'All' || facultyFilter !== 'All' || 
+    yearFilter !== 'All' || semesterFilter !== 'All';
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -219,7 +201,7 @@ export default function Resources() {
 
       {view === 'library' ? (
         <div className="max-w-7xl mx-auto px-6 py-10">
-          {/* Search + Filters */}
+          {/* Filters */}
           <div className="bg-white p-6 rounded-3xl shadow-sm mb-8">
             <div className="flex flex-col md:flex-row gap-4 items-end">
               <div className="flex-1 relative">
@@ -232,11 +214,7 @@ export default function Resources() {
                 />
               </div>
 
-              <select 
-                value={typeFilter} 
-                onChange={(e) => setTypeFilter(e.target.value)}
-                className="px-5 py-3 border rounded-2xl focus:outline-none focus:ring-2 focus:ring-[#006591]"
-              >
+              <select value={typeFilter} onChange={(e) => setTypeFilter(e.target.value)} className="px-5 py-3 border rounded-2xl focus:outline-none focus:ring-2 focus:ring-[#006591]">
                 <option value="All">All Types</option>
                 <option value="PDF">PDF</option>
                 <option value="Image">Image</option>
@@ -244,11 +222,7 @@ export default function Resources() {
                 <option value="Link">Link</option>
               </select>
 
-              <select 
-                value={facultyFilter} 
-                onChange={(e) => setFacultyFilter(e.target.value)}
-                className="px-5 py-3 border rounded-2xl focus:outline-none focus:ring-2 focus:ring-[#006591]"
-              >
+              <select value={facultyFilter} onChange={(e) => setFacultyFilter(e.target.value)} className="px-5 py-3 border rounded-2xl focus:outline-none focus:ring-2 focus:ring-[#006591]">
                 <option value="All">All Faculties</option>
                 <option value="Computing">Computing</option>
                 <option value="Business">Business</option>
@@ -257,29 +231,21 @@ export default function Resources() {
                 <option value="Architecture">Architecture</option>
               </select>
 
-              <select 
-                value={yearFilter} 
-                onChange={(e) => setYearFilter(e.target.value)}
-                className="px-5 py-3 border rounded-2xl focus:outline-none focus:ring-2 focus:ring-[#006591]"
-              >
+              <select value={yearFilter} onChange={(e) => setYearFilter(e.target.value)} className="px-5 py-3 border rounded-2xl focus:outline-none focus:ring-2 focus:ring-[#006591]">
                 <option value="All">All Years</option>
                 <option value="Year 1">Year 1</option>
                 <option value="Year 2">Year 2</option>
               </select>
 
-              <select 
-                value={semesterFilter} 
-                onChange={(e) => setSemesterFilter(e.target.value)}
-                className="px-5 py-3 border rounded-2xl focus:outline-none focus:ring-2 focus:ring-[#006591]"
-              >
+              <select value={semesterFilter} onChange={(e) => setSemesterFilter(e.target.value)} className="px-5 py-3 border rounded-2xl focus:outline-none focus:ring-2 focus:ring-[#006591]">
                 <option value="All">All Semesters</option>
                 <option value="Semester 1">Semester 1</option>
                 <option value="Semester 2">Semester 2</option>
               </select>
 
               {hasActiveFilters && (
-                <button
-                  onClick={clearFilters}
+                <button 
+                  onClick={clearFilters} 
                   className="px-6 py-3 border border-gray-300 hover:bg-gray-50 text-gray-700 rounded-2xl flex items-center gap-2 whitespace-nowrap transition"
                 >
                   <X size={18} /> Clear Filters
@@ -288,67 +254,19 @@ export default function Resources() {
             </div>
           </div>
 
-          {/* Content */}
-          {fileResources.length > 0 && (
-            <div className="mb-16">
-              <h2 className="text-2xl font-semibold mb-6 flex items-center gap-3 text-[#006591]">
-                <BookOpen size={28} /> Downloadable Resources
-              </h2>
-              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-                {fileResources.map(resource => (
-                  <div key={resource._id} className="bg-white rounded-3xl p-7 shadow hover:shadow-lg transition border border-gray-100">
-                    <h3 className="font-semibold text-xl mb-3">{resource.title}</h3>
-                    <p className="text-gray-600 mb-6 line-clamp-3">{resource.description}</p>
-                    {resource.tags && resource.tags.length > 0 && (
-                      <div className="flex flex-wrap gap-2 mb-6">
-                        {resource.tags.slice(0, 4).map((tag, i) => (
-                          <span key={i} className="bg-blue-50 text-[#006591] text-xs px-3 py-1 rounded-full">
-                            {tag}
-                          </span>
-                        ))}
-                      </div>
-                    )}
-                    <div className="flex gap-3">
-                      <button onClick={() => previewResource(resource)} className="flex-1 py-3 border border-[#006591] text-[#006591] hover:bg-[#006591] hover:text-white rounded-2xl transition">
-                        Preview
-                      </button>
-                      <button onClick={() => handleDownload(resource.fileUrl || '', resource.fileName)} className="flex-1 py-3 bg-[#cc5500] text-white rounded-2xl hover:bg-[#b34700] transition">
-                        Download
-                      </button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {linkResources.length > 0 && (
-            <div>
-              <h2 className="text-2xl font-semibold mb-6 flex items-center gap-3 text-[#006591]">
-                <LinkIcon size={28} /> Useful Links
-              </h2>
-              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-                {linkResources.map(resource => (
-                  <div key={resource._id} className="bg-white rounded-3xl p-7 shadow hover:shadow-lg transition border border-gray-100">
-                    <h3 className="font-semibold text-xl mb-3">{resource.title}</h3>
-                    <p className="text-gray-600 mb-6 line-clamp-3">{resource.description}</p>
-                    {resource.tags && resource.tags.length > 0 && (
-                      <div className="flex flex-wrap gap-2 mb-6">
-                        {resource.tags.slice(0, 4).map((tag, i) => (
-                          <span key={i} className="bg-blue-50 text-[#006591] text-xs px-3 py-1 rounded-full">
-                            {tag}
-                          </span>
-                        ))}
-                      </div>
-                    )}
-                    <button onClick={() => openLink(resource.url || '')} className="w-full py-3 border border-[#006591] text-[#006591] hover:bg-[#006591] hover:text-white rounded-2xl transition">
-                      Open Link
-                    </button>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
+          {/* Resource Cards Grid - Library View */}
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {filteredLibrary.map(resource => (
+              <ResourceCard
+                key={resource._id}
+                resource={resource}
+                onPreview={previewResource}
+                onDownload={handleDownload}
+                onOpenLink={openLink}        // ← FIXED: Now properly passed
+                showActions={true}
+              />
+            ))}
+          </div>
 
           {filteredLibrary.length === 0 && (
             <div className="text-center py-20 text-gray-400">No resources found matching your filters.</div>
@@ -356,7 +274,7 @@ export default function Resources() {
         </div>
       ) : (
         <div className="max-w-7xl mx-auto px-6 py-10">
-          {/* My Resources Filters with Clear Button */}
+          {/* My Resources Filters */}
           <div className="bg-white p-6 rounded-3xl shadow-sm mb-8">
             <div className="flex flex-col md:flex-row gap-4 items-end">
               <div className="flex-1 relative">
@@ -399,8 +317,8 @@ export default function Resources() {
               </select>
 
               {hasActiveFilters && (
-                <button
-                  onClick={clearFilters}
+                <button 
+                  onClick={clearFilters} 
                   className="px-6 py-3 border border-gray-300 hover:bg-gray-50 text-gray-700 rounded-2xl flex items-center gap-2 whitespace-nowrap transition"
                 >
                   <X size={18} /> Clear Filters
