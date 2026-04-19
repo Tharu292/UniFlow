@@ -6,7 +6,6 @@ import {
   createResource,
   updateResource,
   deleteResource,
-  updateResourceStatus,
   incrementDownloads,
   getResourceStats,
 } from "../controllers/resourceController";

@@ -1,11 +1,8 @@
-// backend/src/controllers/resourceController.ts
 import { Request, Response } from 'express';
 import Resource from '../models/Resource';
 import { AuthRequest } from '../types/express';
 import mongoose from 'mongoose';
 
-
-// Safe helper to convert req.params.id to ObjectId
 const toObjectId = (id: string | string[] | undefined): mongoose.Types.ObjectId => {
   if (!id || Array.isArray(id)) {
     throw new Error('Valid ID is required');
@@ -13,13 +10,12 @@ const toObjectId = (id: string | string[] | undefined): mongoose.Types.ObjectId 
   return new mongoose.Types.ObjectId(id);
 };
 
-
-// ======================
-// CREATE RESOURCE
-// ======================
+// CREATE RESOURCE - Students only
 export const createResource = async (req: AuthRequest, res: Response) => {
   try {
-    const isAdmin = req.user?.role === "admin";
+    if (req.user?.role === "admin") {
+      return res.status(403).json({ message: "Admins cannot upload resources. Only students can upload." });
+    }
 
     let tags: string[] = [];
     if (req.body.tags) {
@@ -39,33 +35,20 @@ export const createResource = async (req: AuthRequest, res: Response) => {
       targetFaculty: req.body.targetFaculty,
       targetSemester: req.body.targetSemester,
       targetYear: req.body.targetYear,
-      status: isAdmin ? 'approved' : 'pending',
+      status: 'approved',
     };
 
-    // ADMIN: Only URL allowed
-    if (isAdmin) {
-      if (!req.body.url) {
-        return res.status(400).json({ message: "Admin must provide a URL" });
-      }
+    if (req.file) {
+      resourceData.fileUrl = req.file.path;
+      resourceData.fileName = req.file.originalname;
+      resourceData.type = req.file.mimetype.includes('pdf') ? 'PDF'
+                        : req.file.mimetype.includes('image') ? 'Image'
+                        : 'Video';
+    } else if (req.body.url) {
       resourceData.url = req.body.url;
       resourceData.type = 'Link';
-    } 
-    // STUDENT: File OR URL allowed
-    else {
-      if (req.file) {
-        resourceData.fileUrl = req.file.path;
-        resourceData.fileName = req.file.originalname;
-        resourceData.type = req.file.mimetype.includes('pdf') ? 'PDF' 
-                          : req.file.mimetype.includes('image') ? 'Image' 
-                          : 'Video';
-      } 
-      else if (req.body.url) {
-        resourceData.url = req.body.url;
-        resourceData.type = 'Link';
-      } 
-      else {
-        return res.status(400).json({ message: "Students must upload a file or provide a URL" });
-      }
+    } else {
+      return res.status(400).json({ message: "Students must upload a file or provide a URL" });
     }
 
     if (!resourceData.subject) {
@@ -83,43 +66,40 @@ export const createResource = async (req: AuthRequest, res: Response) => {
     res.status(500).json({ message: err.message || "Failed to create resource" });
   }
 };
-// GET ALL Resources
+
+// GET ALL
 export const getResources = async (_req: Request, res: Response) => {
   try {
-    
     const resources = await Resource.find().populate('uploadedById', 'name email');
     res.json(resources);
   } catch (err: any) {
     res.status(500).json({ error: err.message });
   }
 };
+
 export const getResourceById = async (req: Request, res: Response) => {
   try {
     const resource = await Resource.findById(req.params.id);
-
-    if (!resource) {
-      return res.status(404).json({ message: "Resource not found" });
-    }
-
+    if (!resource) return res.status(404).json({ message: "Resource not found" });
     res.json(resource);
   } catch (err: any) {
     res.status(500).json({ error: err.message });
   }
 };
 
-// GET MY Resources
+// GET MY RESOURCES
 export const getMyResources = async (req: AuthRequest, res: Response) => {
   try {
     const resources = await Resource.find({
       uploadedById: new mongoose.Types.ObjectId(req.user!.id)
     }).sort({ createdAt: -1 });
-
     res.json(resources);
   } catch (err: any) {
     res.status(500).json({ error: err.message });
   }
 };
 
+// UPDATE RESOURCE (Student only - own resources)
 export const updateResource = async (req: AuthRequest, res: Response) => {
   try {
     const allowedUpdates = [
@@ -151,23 +131,14 @@ export const updateResource = async (req: AuthRequest, res: Response) => {
   }
 };
 
-// backend/src/controllers/resourceController.ts
-
-// DELETE Resource - Allow both owner AND Admin
+// DELETE (Owner or Admin)
 export const deleteResource = async (req: AuthRequest, res: Response) => {
   try {
     const resourceId = toObjectId(req.params.id);
-
-    // Find the resource first
     const resource = await Resource.findById(resourceId);
 
-    if (!resource) {
-      return res.status(404).json({ message: 'Resource not found' });
-    }
+    if (!resource) return res.status(404).json({ message: 'Resource not found' });
 
-    // Allow deletion if:
-    // 1. User is the uploader (owner), OR
-    // 2. User is Admin
     const isOwner = resource.uploadedById?.toString() === req.user!.id;
     const isAdmin = req.user!.role === "admin";
 
@@ -176,13 +147,13 @@ export const deleteResource = async (req: AuthRequest, res: Response) => {
     }
 
     await Resource.findByIdAndDelete(resourceId);
-
     res.json({ message: 'Resource deleted successfully' });
   } catch (err: any) {
     console.error("Delete Resource Error:", err);
     res.status(500).json({ error: err.message });
   }
 };
+
 export const incrementDownloads = async (req: Request, res: Response) => {
   try {
     const resource = await Resource.findByIdAndUpdate(
@@ -190,37 +161,18 @@ export const incrementDownloads = async (req: Request, res: Response) => {
       { $inc: { downloads: 1 } },
       { new: true }
     );
-
     res.json(resource);
   } catch (err: any) {
     res.status(500).json({ error: err.message });
   }
 };
 
-export const updateResourceStatus = async (req: Request, res: Response) => {
-  try {
-    const resource = await Resource.findByIdAndUpdate(
-      req.params.id,
-      { status: req.body.status },
-      { new: true }
-    );
-
-    res.json(resource);
-  } catch (err: any) {
-    res.status(500).json({ error: err.message });
-  }
-};
 export const getResourceStats = async (_req: Request, res: Response) => {
   try {
     const total = await Resource.countDocuments();
     const approved = await Resource.countDocuments({ status: "approved" });
     const pending = await Resource.countDocuments({ status: "pending" });
-
-    res.json({
-      total,
-      approved,
-      pending
-    });
+    res.json({ total, approved, pending });
   } catch (err: any) {
     res.status(500).json({ error: err.message });
   }
