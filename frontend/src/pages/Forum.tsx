@@ -1,11 +1,10 @@
 // src/pages/Forum.tsx
-import { useEffect, useState } from "react";
+import { useEffect, useState, useContext, useMemo } from "react";
 import { MessageSquare, Search, Plus } from "lucide-react";
 import api from "../api";
 import QuestionCard from "../components/QuestionCard";
 import type { Question } from "../types";
 import toast from "react-hot-toast";
-import { useContext } from "react";
 import { AuthContext } from "../context/AuthContext";
 import CreateQuestionModal from "../components/CreateQuestionModal";
 
@@ -14,8 +13,8 @@ export default function Forum() {
   const isAdmin = user?.role === "admin";
 
   const [questions, setQuestions] = useState<Question[]>([]);
-  const [filteredQuestions, setFilteredQuestions] = useState<Question[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
+  const [activeTab, setActiveTab] = useState<"all" | "my">("all");
   const [loading, setLoading] = useState(true);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
 
@@ -23,7 +22,6 @@ export default function Forum() {
     try {
       const res = await api.get("/questions");
       setQuestions(res.data);
-      setFilteredQuestions(res.data);
     } catch (err) {
       console.error(err);
       toast.error("Failed to load questions");
@@ -32,14 +30,32 @@ export default function Forum() {
     }
   };
 
-  // Live search
-  useEffect(() => {
-    const filtered = questions.filter(q =>
-      q.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      q.description.toLowerCase().includes(searchTerm.toLowerCase())
+  // Memoized filtered questions + counts
+  const { allQuestions, myQuestions, filteredQuestions } = useMemo(() => {
+    let all = [...questions];
+    let my: Question[] = [];
+
+    if (user?._id) {
+      my = questions.filter(q => 
+        (typeof q.user === "object" && q.user?._id === user._id) ||
+        (typeof q.user === "string" && q.user === user._id)
+      );
+    }
+
+    // Apply search filter
+    const term = searchTerm.toLowerCase().trim();
+    const filtered = (activeTab === "all" ? all : my).filter(q =>
+      !term || 
+      q.title.toLowerCase().includes(term) ||
+      q.description.toLowerCase().includes(term)
     );
-    setFilteredQuestions(filtered);
-  }, [searchTerm, questions]);
+
+    return {
+      allQuestions: all,
+      myQuestions: my,
+      filteredQuestions: filtered,
+    };
+  }, [questions, searchTerm, activeTab, user?._id]);
 
   useEffect(() => {
     load();
@@ -58,28 +74,59 @@ export default function Forum() {
               </h1>
               <p className="text-gray-500 mt-1">
                 {isAdmin 
-                  ? "View all questions and answers posted by students" 
+                  ? "Manage all questions and answers" 
                   : "Ask questions, share knowledge, and learn together"}
               </p>
             </div>
           </div>
         </div>
 
-        {/* Post Question Button - Only for Students */}
-        {!isAdmin && (
-          <div className="mb-8 flex justify-end">
+        {/* Tabs + Post Button */}
+        <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 mb-8">
+          
+          {/* Beautiful Tabs */}
+          {!isAdmin && (
+            <div className="inline-flex bg-white rounded-3xl p-1.5 shadow-sm border border-gray-100">
+              <button
+                onClick={() => setActiveTab("all")}
+                className={`flex items-center gap-2 px-7 py-3 rounded-3xl font-medium transition-all duration-200 ${
+                  activeTab === "all"
+                    ? "bg-[#006591] text-white shadow-md"
+                    : "text-gray-600 hover:bg-gray-100"
+                }`}
+              >
+                All Questions
+                <span className="text-sm opacity-75">({allQuestions.length})</span>
+              </button>
+
+              <button
+                onClick={() => setActiveTab("my")}
+                className={`flex items-center gap-2 px-7 py-3 rounded-3xl font-medium transition-all duration-200 ${
+                  activeTab === "my"
+                    ? "bg-[#006591] text-white shadow-md"
+                    : "text-gray-600 hover:bg-gray-100"
+                }`}
+              >
+                My Questions
+                <span className="text-sm opacity-75">({myQuestions.length})</span>
+              </button>
+            </div>
+          )}
+
+          {/* Post Question Button */}
+          {!isAdmin && (
             <button
               onClick={() => setIsCreateModalOpen(true)}
-              className="flex items-center gap-3 bg-[#006591] hover:bg-[#005580] text-white px-6 py-3.5 rounded-2xl font-medium shadow-md transition-all active:scale-95"
+              className="flex items-center gap-3 bg-[#cc5500] hover:bg-[#005580] text-white px-6 py-3.5 rounded-2xl font-medium shadow-lg transition-all active:scale-[0.97]"
             >
               <Plus size={22} />
               Post a Question
             </button>
-          </div>
-        )}
+          )}
+        </div>
 
-        {/* Search Bar */}
-        {!isAdmin && (
+        {/* Search Bar - Show only in "All Questions" tab */}
+        {activeTab === "all" && (
           <div className="relative mb-8">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
             <input
@@ -95,10 +142,14 @@ export default function Forum() {
         {/* Questions List */}
         <div className="space-y-6">
           {loading ? (
-            <p className="text-center text-gray-500 py-12">Loading questions...</p>
+            <div className="text-center text-gray-500 py-16">Loading questions...</div>
           ) : filteredQuestions.length === 0 ? (
-            <div className="bg-white p-12 rounded-2xl text-center text-gray-500">
-              {searchTerm ? "No questions match your search." : "No questions yet. Be the first to ask!"}
+            <div className="bg-white p-16 rounded-2xl text-center text-gray-500">
+              {activeTab === "my" 
+                ? "You haven't posted any questions yet. Click 'Post a Question' to get started!" 
+                : searchTerm 
+                  ? "No questions match your search." 
+                  : "No questions have been posted yet."}
             </div>
           ) : (
             filteredQuestions.map((q) => (
