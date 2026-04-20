@@ -10,7 +10,7 @@ test('User Logout via Header Dropdown', async ({ page }) => {
 
   await page.waitForLoadState('networkidle');
 
-  // ✅ Click profile icon (clean way)
+  //Click profile icon (clean way)
   await page.click('[data-testid="profile-button"]');
 
   await page.click('text=Logout');
