@@ -99,6 +99,7 @@ export default function CreateQuestionModal({
             Title
           </label>
           <input
+            data-testid="question-title"
             type="text"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
@@ -116,6 +117,7 @@ export default function CreateQuestionModal({
             Description
           </label>
           <textarea
+            data-testid="question-description"
             rows={6}
             value={description}
             onChange={(e) => setDescription(e.target.value)}
@@ -136,6 +138,7 @@ export default function CreateQuestionModal({
             Cancel
           </button>
           <button
+            data-testid="submit-question"
             onClick={handleSubmit}
             disabled={loading}
             className="flex-1 py-3 bg-[#006591] text-white rounded-xl hover:bg-[#005580] disabled:opacity-70 font-medium"
