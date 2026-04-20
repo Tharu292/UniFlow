@@ -47,6 +47,7 @@ const PostAnswer = ({ questionId, refresh }: any) => {
 
       {/* Textarea */}
       <textarea
+        data-testid="answer-input"
         rows={5}
         className={`w-full p-3 border rounded-lg focus:outline-none focus:ring-2 transition resize-none
         ${error ? "border-red-500 focus:ring-red-300" : "focus:ring-green-400"}`}
@@ -73,6 +74,7 @@ const PostAnswer = ({ questionId, refresh }: any) => {
 
       {/* Button */}
       <button
+        data-testid="submit-answer"
         onClick={submit}
         className="w-full mt-4 bg-green-500 hover:bg-green-600 text-white font-medium py-3 rounded-lg transition shadow-sm"
       >

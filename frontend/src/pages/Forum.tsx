@@ -116,6 +116,7 @@ export default function Forum() {
           {/* Post Question Button */}
           {!isAdmin && (
             <button
+              data-testid="open-question-modal"
               onClick={() => setIsCreateModalOpen(true)}
               className="flex items-center gap-3 bg-[#cc5500] hover:bg-[#005580] text-white px-6 py-3.5 rounded-2xl font-medium shadow-lg transition-all active:scale-[0.97]"
             >
