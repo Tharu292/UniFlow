@@ -15,7 +15,7 @@ const PostQuestion = ({ refresh }: any) => {
     let valid = true;
     const newErrors = { title: "", description: "" };
 
-    // 🔴 Title validation
+    //Title validation
     if (!title.trim()) {
       newErrors.title = "Title is required";
       valid = false;
@@ -32,7 +32,7 @@ const PostQuestion = ({ refresh }: any) => {
        valid = false;
     }
 
-    // 🔴 Description validation
+    //Description validation
     if (!description.trim()) {
       newErrors.description = "Description is required";
       valid = false;

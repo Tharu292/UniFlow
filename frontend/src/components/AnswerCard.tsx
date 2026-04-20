@@ -38,7 +38,7 @@ const AnswerCard = ({ a, refresh }: { a: Answer; refresh: () => void }) => {
     }
   };
 
-  // ✅ FIXED: Correct parameter handling
+  // FIXED: Correct parameter handling
   const handleUpdateAnswer = async (data: { content?: string }) => {
     await api.put(`/answers/${a._id}`, {
       content: data.content,
