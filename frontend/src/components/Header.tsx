@@ -210,6 +210,7 @@ export default function Header() {
               {/* Profile Icon */}
               <div className="relative" ref={profileRef}>
                 <button
+                 data-testid="profile-button"
                   onClick={() => {
                     setOpen(!open);
                     setNotifOpen(false);
