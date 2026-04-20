@@ -117,7 +117,7 @@ export default function Forum() {
           {!isAdmin && (
             <button
               onClick={() => setIsCreateModalOpen(true)}
-              className="flex items-center gap-3 bg-[#006591] hover:bg-[#005580] text-white px-6 py-3.5 rounded-2xl font-medium shadow-lg transition-all active:scale-[0.97]"
+              className="flex items-center gap-3 bg-[#cc5500] hover:bg-[#005580] text-white px-6 py-3.5 rounded-2xl font-medium shadow-lg transition-all active:scale-[0.97]"
             >
               <Plus size={22} />
               Post a Question
