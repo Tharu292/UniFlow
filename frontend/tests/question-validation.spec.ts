@@ -14,12 +14,12 @@ test('Post Question Validation', async ({ page }) => {
 
   await page.click('[data-testid="open-question-modal"]');
 
-  // ❌ Invalid input
+  //Invalid input
   await page.fill('[data-testid="question-title"]', '12345');
   await page.fill('[data-testid="question-description"]', 'short');
 
   await page.click('[data-testid="submit-question"]');
 
-  // ✅ Expect validation errors
+  //Expect validation errors
   await expect(page.locator('text=Minimum 30 characters required')).toBeVisible();
 });
