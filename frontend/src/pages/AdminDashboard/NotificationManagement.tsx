@@ -1,17 +1,15 @@
-// frontend/src/pages/AdminDashboard/NotificationManagement.tsx
 import React, { useState, useEffect } from 'react';
-import { 
-  FaBell, 
-  FaCheckCircle, 
-  FaExclamationTriangle, 
-  FaEye, 
-  FaTrashAlt, 
+import {
+  FaBell,
+  FaCheckCircle,
+  FaExclamationTriangle,
+  FaEye,
+  FaTrashAlt,
   FaEdit,
   FaPlus,
   FaUsers,
   FaCalendarAlt,
   FaFlag,
-  FaEnvelope,
   FaTimes,
   FaSearch,
   FaSpinner,
@@ -45,6 +43,8 @@ const NotificationManagement = () => {
       const response = await axios.get(`${API_URL}/notifications`);
       if (response.data.success) {
         setNotifications(response.data.data);
+      } else if (Array.isArray(response.data)) {
+        setNotifications(response.data);
       }
     } catch (err: any) {
       console.error('Error fetching notifications:', err);
@@ -79,8 +79,9 @@ const NotificationManagement = () => {
   }, [notifications]);
 
   const filteredNotifications = notifications.filter(notification => {
-    const matchesSearch = notification.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         notification.message.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesSearch =
+      notification.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      notification.message.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesPriority = priorityFilter === 'all' || notification.priority === priorityFilter;
     const matchesStatus = statusFilter === 'all' || notification.status === statusFilter;
     const matchesAudience = audienceFilter === 'all' || notification.targetAudience === audienceFilter;
@@ -90,7 +91,7 @@ const NotificationManagement = () => {
   const handleCreateNotification = async (notificationData: any) => {
     try {
       const response = await axios.post(`${API_URL}/notifications`, notificationData);
-      if (response.data.success) {
+      if (response.data.success || response.data) {
         await fetchNotifications();
         setShowCreateModal(false);
       }
@@ -103,7 +104,7 @@ const NotificationManagement = () => {
   const handleUpdateNotification = async (id: string, notificationData: any) => {
     try {
       const response = await axios.put(`${API_URL}/notifications/${id}`, notificationData);
-      if (response.data.success) {
+      if (response.data.success || response.data) {
         await fetchNotifications();
         setEditingNotification(null);
       }
@@ -117,7 +118,7 @@ const NotificationManagement = () => {
     if (window.confirm('Are you sure you want to delete this notification?')) {
       try {
         const response = await axios.delete(`${API_URL}/notifications/${id}`);
-        if (response.data.success) {
+        if (response.data.success || response.data) {
           await fetchNotifications();
         }
       } catch (err: any) {
@@ -138,68 +139,44 @@ const NotificationManagement = () => {
     );
   }
 
+  if (error) {
+    return <div className="p-8 text-red-600">{error}</div>;
+  }
+
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50" data-testid="notification-management-page">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">Notification Management</h1>
-          <p className="text-gray-600 mt-1">Create and manage student notifications with semester/year filtering</p>
+          <h1 data-testid="notification-page-title" className="text-3xl font-bold text-gray-900">
+            Notification Management
+          </h1>
+          <p className="text-gray-600 mt-1">
+            Create and manage student notifications with semester/year filtering
+          </p>
         </div>
 
-        {/* Stats Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-500 font-medium">Total Notifications</p>
-                <p className="text-3xl font-bold text-gray-900 mt-1">{stats.total}</p>
-              </div>
-              <div className="w-12 h-12 bg-indigo-50 rounded-xl flex items-center justify-center">
-                <FaBell className="text-indigo-600 text-2xl" />
-              </div>
-            </div>
+            <p className="text-sm text-gray-500 font-medium">Total Notifications</p>
+            <p className="text-3xl font-bold text-gray-900 mt-1">{stats.total}</p>
           </div>
-          
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-500 font-medium">Active</p>
-                <p className="text-3xl font-bold text-green-600 mt-1">{stats.active}</p>
-              </div>
-              <div className="w-12 h-12 bg-green-50 rounded-xl flex items-center justify-center">
-                <FaCheckCircle className="text-green-600 text-2xl" />
-              </div>
-            </div>
+            <p className="text-sm text-gray-500 font-medium">Active</p>
+            <p className="text-3xl font-bold text-green-600 mt-1">{stats.active}</p>
           </div>
-          
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-500 font-medium">High Priority</p>
-                <p className="text-3xl font-bold text-red-600 mt-1">{stats.highPriority}</p>
-              </div>
-              <div className="w-12 h-12 bg-red-50 rounded-xl flex items-center justify-center">
-                <FaExclamationTriangle className="text-red-600 text-2xl" />
-              </div>
-            </div>
+            <p className="text-sm text-gray-500 font-medium">High Priority</p>
+            <p className="text-3xl font-bold text-red-600 mt-1">{stats.highPriority}</p>
           </div>
-          
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-500 font-medium">Total Views</p>
-                <p className="text-3xl font-bold text-purple-600 mt-1">{stats.totalViews.toLocaleString()}</p>
-              </div>
-              <div className="w-12 h-12 bg-purple-50 rounded-xl flex items-center justify-center">
-                <FaEye className="text-purple-600 text-2xl" />
-              </div>
-            </div>
+            <p className="text-sm text-gray-500 font-medium">Total Views</p>
+            <p className="text-3xl font-bold text-purple-600 mt-1">{stats.totalViews.toLocaleString()}</p>
           </div>
         </div>
 
-        {/* Create Button */}
         <div className="mb-6">
           <button
+            data-testid="create-notification-button"
             onClick={() => setShowCreateModal(true)}
             className="inline-flex items-center gap-2 px-5 py-2.5 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition-colors"
           >
@@ -208,12 +185,12 @@ const NotificationManagement = () => {
           </button>
         </div>
 
-        {/* Search and Filters */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 mb-6">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div className="relative">
               <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
               <input
+                data-testid="notification-search"
                 type="text"
                 placeholder="Search notifications..."
                 value={searchTerm}
@@ -221,7 +198,9 @@ const NotificationManagement = () => {
                 className="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
               />
             </div>
+
             <select
+              data-testid="notification-priority-filter"
               value={priorityFilter}
               onChange={(e) => setPriorityFilter(e.target.value)}
               className="px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
@@ -231,7 +210,9 @@ const NotificationManagement = () => {
               <option value="Medium">Medium Priority</option>
               <option value="Low">Low Priority</option>
             </select>
+
             <select
+              data-testid="notification-status-filter"
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
               className="px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
@@ -240,7 +221,9 @@ const NotificationManagement = () => {
               <option value="active">Active</option>
               <option value="expired">Expired</option>
             </select>
+
             <select
+              data-testid="notification-audience-filter"
               value={audienceFilter}
               onChange={(e) => setAudienceFilter(e.target.value)}
               className="px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
@@ -254,8 +237,7 @@ const NotificationManagement = () => {
           </div>
         </div>
 
-        {/* Notifications List */}
-        <div className="space-y-4">
+        <div className="space-y-4" data-testid="notifications-list">
           {filteredNotifications.length > 0 ? (
             filteredNotifications.map((notification) => (
               <NotificationCard
@@ -269,19 +251,11 @@ const NotificationManagement = () => {
             <div className="bg-white rounded-xl border border-gray-200 p-12 text-center">
               <FaBell className="text-6xl text-gray-300 mx-auto mb-4" />
               <p className="text-gray-500">No notifications found</p>
-              <button
-                onClick={() => setShowCreateModal(true)}
-                className="mt-4 inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg"
-              >
-                <FaPlus />
-                Create your first notification
-              </button>
             </div>
           )}
         </div>
       </div>
 
-      {/* Modal */}
       {(showCreateModal || editingNotification) && (
         <NotificationForm
           notification={editingNotification}
@@ -302,10 +276,9 @@ const NotificationManagement = () => {
   );
 };
 
-// Notification Card Component
 const NotificationCard = ({ notification, onDelete, onEdit }: any) => {
   const [expanded, setExpanded] = useState(false);
-  
+
   const priorityColors: any = {
     High: { bg: 'bg-red-50', text: 'text-red-600' },
     Medium: { bg: 'bg-yellow-50', text: 'text-yellow-600' },
@@ -328,7 +301,10 @@ const NotificationCard = ({ notification, onDelete, onEdit }: any) => {
   };
 
   return (
-    <div className="bg-white rounded-xl border border-gray-200 p-6">
+    <div
+      className="bg-white rounded-xl border border-gray-200 p-6"
+      data-testid={`notification-card-${notification._id}`}
+    >
       <div className="flex items-start justify-between">
         <div className="flex-1">
           <div className="flex items-center gap-3 mb-2 flex-wrap">
@@ -354,10 +330,10 @@ const NotificationCard = ({ notification, onDelete, onEdit }: any) => {
             </span>
             <span className="flex items-center gap-1">
               <FaEye className="text-xs" />
-              {notification.views} views
+              {notification.views ?? 0} views
             </span>
           </div>
-          <p className={`text-gray-700 ${!expanded && 'line-clamp-2'}`}>
+          <p className={`${!expanded && 'line-clamp-2'} text-gray-700`}>
             {notification.message}
           </p>
           {notification.message.length > 100 && (
@@ -366,11 +342,20 @@ const NotificationCard = ({ notification, onDelete, onEdit }: any) => {
             </button>
           )}
         </div>
+
         <div className="flex gap-2 ml-4">
-          <button onClick={onEdit} className="p-2 text-gray-400 hover:text-indigo-600">
+          <button
+            data-testid={`notification-edit-${notification._id}`}
+            onClick={onEdit}
+            className="p-2 text-gray-400 hover:text-indigo-600"
+          >
             <FaEdit />
           </button>
-          <button onClick={() => onDelete(notification._id)} className="p-2 text-gray-400 hover:text-red-600">
+          <button
+            data-testid={`notification-delete-${notification._id}`}
+            onClick={() => onDelete(notification._id)}
+            className="p-2 text-gray-400 hover:text-red-600"
+          >
             <FaTrashAlt />
           </button>
         </div>
@@ -379,7 +364,6 @@ const NotificationCard = ({ notification, onDelete, onEdit }: any) => {
   );
 };
 
-// Notification Form Component with Semester & Year
 const NotificationForm = ({ notification, onSubmit, onCancel }: any) => {
   const [formData, setFormData] = useState({
     title: notification?.title || '',
@@ -394,7 +378,7 @@ const NotificationForm = ({ notification, onSubmit, onCancel }: any) => {
   const [errors, setErrors] = useState<any>({});
 
   const validateField = (name: string, value: string) => {
-    switch(name) {
+    switch (name) {
       case 'title':
         if (!value.trim()) return 'Title is required';
         if (value.length < 5) return 'Title must be at least 5 characters';
@@ -422,9 +406,9 @@ const NotificationForm = ({ notification, onSubmit, onCancel }: any) => {
       message: validateField('message', formData.message),
       expiryDate: validateField('expiryDate', formData.expiryDate)
     };
-    
+
     setErrors(newErrors);
-    
+
     if (!Object.values(newErrors).some(error => error !== '')) {
       onSubmit(formData);
     }
@@ -436,19 +420,29 @@ const NotificationForm = ({ notification, onSubmit, onCancel }: any) => {
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={onCancel}>
-      <div className="bg-white rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+    <div
+      data-testid="notification-form-modal"
+      className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
+      onClick={onCancel}
+    >
+      <div
+        className="bg-white rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto"
+        onClick={(e) => e.stopPropagation()}
+      >
         <div className="sticky top-0 bg-white border-b px-6 py-4 flex justify-between items-center">
-          <h2 className="text-2xl font-bold">{notification ? 'Edit Notification' : 'Create Notification'}</h2>
-          <button onClick={onCancel} className="text-gray-400 hover:text-gray-600">
+          <h2 data-testid="notification-form-title" className="text-2xl font-bold">
+            {notification ? 'Edit Notification' : 'Create Notification'}
+          </h2>
+          <button data-testid="notification-form-close" onClick={onCancel} className="text-gray-400 hover:text-gray-600">
             <FaTimes />
           </button>
         </div>
-        
+
         <form onSubmit={handleSubmit} className="p-6 space-y-6">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">Title *</label>
             <input
+              data-testid="notification-title"
               type="text"
               name="title"
               value={formData.title}
@@ -461,6 +455,7 @@ const NotificationForm = ({ notification, onSubmit, onCancel }: any) => {
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">Message *</label>
             <textarea
+              data-testid="notification-message"
               name="message"
               value={formData.message}
               onChange={handleChange}
@@ -474,6 +469,7 @@ const NotificationForm = ({ notification, onSubmit, onCancel }: any) => {
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">Priority *</label>
               <select
+                data-testid="notification-priority"
                 name="priority"
                 value={formData.priority}
                 onChange={handleChange}
@@ -488,6 +484,7 @@ const NotificationForm = ({ notification, onSubmit, onCancel }: any) => {
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">Target Audience *</label>
               <select
+                data-testid="notification-target-audience"
                 name="targetAudience"
                 value={formData.targetAudience}
                 onChange={handleChange}
@@ -501,13 +498,13 @@ const NotificationForm = ({ notification, onSubmit, onCancel }: any) => {
             </div>
           </div>
 
-          {/* Conditional Fields based on Target Audience */}
           {formData.targetAudience === "By Faculty" && (
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 <FaUniversity className="inline mr-2" /> Select Faculty *
               </label>
               <select
+                data-testid="notification-target-faculty"
                 name="targetFaculty"
                 value={formData.targetFaculty}
                 onChange={handleChange}
@@ -528,6 +525,7 @@ const NotificationForm = ({ notification, onSubmit, onCancel }: any) => {
                 <FaGraduationCap className="inline mr-2" /> Select Semester *
               </label>
               <select
+                data-testid="notification-target-semester"
                 name="targetSemester"
                 value={formData.targetSemester}
                 onChange={handleChange}
@@ -547,6 +545,7 @@ const NotificationForm = ({ notification, onSubmit, onCancel }: any) => {
                 <FaGraduationCap className="inline mr-2" /> Select Year *
               </label>
               <select
+                data-testid="notification-target-year"
                 name="targetYear"
                 value={formData.targetYear}
                 onChange={handleChange}
@@ -565,6 +564,7 @@ const NotificationForm = ({ notification, onSubmit, onCancel }: any) => {
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">Expiry Date *</label>
             <input
+              data-testid="notification-expiry-date"
               type="date"
               name="expiryDate"
               value={formData.expiryDate}
@@ -575,10 +575,19 @@ const NotificationForm = ({ notification, onSubmit, onCancel }: any) => {
           </div>
 
           <div className="flex gap-3 pt-4">
-            <button type="button" onClick={onCancel} className="flex-1 px-4 py-2.5 border rounded-lg">
+            <button
+              data-testid="notification-cancel-button"
+              type="button"
+              onClick={onCancel}
+              className="flex-1 px-4 py-2.5 border rounded-lg"
+            >
               Cancel
             </button>
-            <button type="submit" className="flex-1 px-4 py-2.5 bg-indigo-600 text-white rounded-lg">
+            <button
+              data-testid="notification-submit-button"
+              type="submit"
+              className="flex-1 px-4 py-2.5 bg-indigo-600 text-white rounded-lg"
+            >
               {notification ? 'Update' : 'Create'}
             </button>
           </div>
