@@ -1,13 +1,12 @@
-// AddTaskModal.tsx
 import { useState, useEffect } from 'react';
-import { 
-  X, 
-  Calendar, 
-  Tag, 
-  AlertTriangle, 
-  Link as LinkIcon, 
-  FileText, 
-  BookOpen 
+import {
+  X,
+  Calendar,
+  Tag,
+  AlertTriangle,
+  Link as LinkIcon,
+  FileText,
+  BookOpen
 } from 'lucide-react';
 import { type Task } from '../types';
 
@@ -26,7 +25,6 @@ export default function AddTaskModal({
   onUpdate,
   editingTask
 }: AddTaskModalProps) {
-
   const [formData, setFormData] = useState({
     title: '',
     type: 'assignment' as Task['type'],
@@ -70,28 +68,28 @@ export default function AddTaskModal({
     const newErrors: Record<string, string> = {};
 
     if (!formData.title.trim()) {
-      newErrors.title = "Task title is required";
+      newErrors.title = 'Task title is required';
     } else if (formData.title.length < 3) {
-      newErrors.title = "Title must be at least 3 characters";
+      newErrors.title = 'Title must be at least 3 characters';
     } else if (formData.title.length > 100) {
-      newErrors.title = "Title must not exceed 100 characters";
+      newErrors.title = 'Title must not exceed 100 characters';
     }
 
     if (!formData.dueDate) {
-      newErrors.dueDate = "Due date is required";
+      newErrors.dueDate = 'Due date is required';
     } else if (new Date(formData.dueDate) < new Date()) {
-      newErrors.dueDate = "Due date cannot be in the past";
+      newErrors.dueDate = 'Due date cannot be in the past';
     }
 
     if (formData.description.length > 500) {
-      newErrors.description = "Description must not exceed 500 characters";
+      newErrors.description = 'Description must not exceed 500 characters';
     }
 
     if (formData.resourceLink) {
       try {
         new URL(formData.resourceLink);
       } catch {
-        newErrors.resourceLink = "Please enter a valid URL";
+        newErrors.resourceLink = 'Please enter a valid URL';
       }
     }
 
@@ -99,8 +97,7 @@ export default function AddTaskModal({
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
+  const submitTask = () => {
     if (!validate()) return;
 
     const taskData = {
@@ -118,29 +115,39 @@ export default function AddTaskModal({
     onClose();
   };
 
-  // Urgency indicator
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    submitTask();
+  };
+
   const timeDiff = formData.dueDate
     ? new Date(formData.dueDate).getTime() - Date.now()
     : null;
 
   const hoursLeft = timeDiff ? timeDiff / 3600000 : null;
 
-  const urgency = hoursLeft !== null && hoursLeft > 0
-    ? hoursLeft < 6 ? 'critical' : hoursLeft < 24 ? 'warning' : null
-    : null;
+  const urgency =
+    hoursLeft !== null && hoursLeft > 0
+      ? hoursLeft < 6
+        ? 'critical'
+        : hoursLeft < 24
+          ? 'warning'
+          : null
+      : null;
 
   return (
-    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+    <div
+      className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+      data-testid="add-task-modal"
+    >
       <div className="bg-white rounded-3xl w-full max-w-lg shadow-2xl max-h-[92vh] overflow-hidden flex flex-col">
-        
-        {/* Header */}
         <div className="flex items-center justify-between px-8 pt-8 pb-6 border-b">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 bg-blue-100 rounded-2xl flex items-center justify-center">
               <FileText className="w-5 h-5 text-blue-600" />
             </div>
             <div>
-              <h2 className="text-2xl font-semibold text-gray-900">
+              <h2 className="text-2xl font-semibold text-gray-900" data-testid="task-modal-title">
                 {editingTask ? 'Edit Task' : 'New Task'}
               </h2>
               <p className="text-sm text-gray-500">
@@ -151,14 +158,13 @@ export default function AddTaskModal({
           <button
             onClick={onClose}
             className="p-2 hover:bg-gray-100 rounded-xl transition-colors"
+            data-testid="close-task-modal"
           >
             <X className="w-5 h-5 text-gray-500" />
           </button>
         </div>
 
         <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-8 space-y-6">
-          
-          {/* Title */}
           <div>
             <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-1.5">
               <FileText className="w-4 h-4" />
@@ -168,14 +174,15 @@ export default function AddTaskModal({
               type="text"
               value={formData.title}
               onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-              className={`w-full px-4 py-3.5 border rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all
-                ${errors.title ? 'border-red-500' : 'border-gray-200'}`}
+              className={`w-full px-4 py-3.5 border rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all ${
+                errors.title ? 'border-red-500' : 'border-gray-200'
+              }`}
               placeholder="Enter task title"
+              data-testid="task-title-input"
             />
             {errors.title && <p className="text-red-500 text-xs mt-1.5">{errors.title}</p>}
           </div>
 
-          {/* Type & Priority */}
           <div className="grid grid-cols-2 gap-6">
             <div>
               <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-1.5">
@@ -186,6 +193,7 @@ export default function AddTaskModal({
                 value={formData.type}
                 onChange={(e) => setFormData({ ...formData, type: e.target.value as Task['type'] })}
                 className="w-full px-4 py-3.5 border border-gray-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+                data-testid="task-type-select"
               >
                 <option value="assignment">Assignment</option>
                 <option value="exam">Exam</option>
@@ -204,6 +212,7 @@ export default function AddTaskModal({
                 value={formData.priority}
                 onChange={(e) => setFormData({ ...formData, priority: e.target.value as Task['priority'] })}
                 className="w-full px-4 py-3.5 border border-gray-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+                data-testid="task-priority-select"
               >
                 <option value="low">Low Priority</option>
                 <option value="medium">Medium Priority</option>
@@ -212,7 +221,6 @@ export default function AddTaskModal({
             </div>
           </div>
 
-          {/* Due Date */}
           <div>
             <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-1.5">
               <Calendar className="w-4 h-4" />
@@ -222,11 +230,19 @@ export default function AddTaskModal({
               type="datetime-local"
               value={formData.dueDate}
               onChange={(e) => setFormData({ ...formData, dueDate: e.target.value })}
-              className={`w-full px-4 py-3.5 border rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all
-                ${errors.dueDate ? 'border-red-500' : urgency === 'critical' ? 'border-red-400' : urgency === 'warning' ? 'border-amber-400' : 'border-gray-200'}`}
+              className={`w-full px-4 py-3.5 border rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all ${
+                errors.dueDate
+                  ? 'border-red-500'
+                  : urgency === 'critical'
+                    ? 'border-red-400'
+                    : urgency === 'warning'
+                      ? 'border-amber-400'
+                      : 'border-gray-200'
+              }`}
+              data-testid="task-due-date-input"
             />
             {errors.dueDate && <p className="text-red-500 text-xs mt-1.5">{errors.dueDate}</p>}
-            
+
             {!errors.dueDate && urgency === 'warning' && (
               <p className="text-amber-600 text-xs mt-1.5 flex items-center gap-1">
                 ⚠️ Deadline within 24 hours
@@ -239,7 +255,6 @@ export default function AddTaskModal({
             )}
           </div>
 
-          {/* Module */}
           <div>
             <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-1.5">
               <BookOpen className="w-4 h-4" />
@@ -251,10 +266,10 @@ export default function AddTaskModal({
               onChange={(e) => setFormData({ ...formData, module: e.target.value })}
               className="w-full px-4 py-3.5 border border-gray-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-500"
               placeholder="e.g. IT3020"
+              data-testid="task-module-input"
             />
           </div>
 
-          {/* Description */}
           <div>
             <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-1.5">
               <FileText className="w-4 h-4" />
@@ -264,14 +279,15 @@ export default function AddTaskModal({
               value={formData.description}
               onChange={(e) => setFormData({ ...formData, description: e.target.value })}
               rows={4}
-              className={`w-full px-4 py-3.5 border rounded-2xl resize-y min-h-[100px] focus:outline-none focus:ring-2 focus:ring-blue-500
-                ${errors.description ? 'border-red-500' : 'border-gray-200'}`}
+              className={`w-full px-4 py-3.5 border rounded-2xl resize-y min-h-[100px] focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                errors.description ? 'border-red-500' : 'border-gray-200'
+              }`}
               placeholder="Add more details about the task..."
+              data-testid="task-description-input"
             />
             {errors.description && <p className="text-red-500 text-xs mt-1.5">{errors.description}</p>}
           </div>
 
-          {/* Resource Link */}
           <div>
             <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-1.5">
               <LinkIcon className="w-4 h-4" />
@@ -281,30 +297,34 @@ export default function AddTaskModal({
               type="url"
               value={formData.resourceLink}
               onChange={(e) => setFormData({ ...formData, resourceLink: e.target.value })}
-              className={`w-full px-4 py-3.5 border rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-500
-                ${errors.resourceLink ? 'border-red-500' : 'border-gray-200'}`}
+              className={`w-full px-4 py-3.5 border rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                errors.resourceLink ? 'border-red-500' : 'border-gray-200'
+              }`}
               placeholder="https://..."
+              data-testid="task-resource-link-input"
             />
             {errors.resourceLink && <p className="text-red-500 text-xs mt-1.5">{errors.resourceLink}</p>}
           </div>
         </form>
 
-        {/* Footer Buttons */}
         <div className="border-t px-8 py-6 flex gap-4">
           <button
             type="button"
             onClick={onClose}
             className="flex-1 py-3.5 text-gray-700 font-medium border border-gray-300 rounded-2xl hover:bg-gray-50 transition-colors"
+            data-testid="task-cancel-button"
           >
             Cancel
           </button>
           <button
-            type="submit"
-            onClick={handleSubmit}
-            className={`flex-1 py-3.5 rounded-2xl font-semibold text-white transition-all
-              ${editingTask 
-                ? 'bg-emerald-600 hover:bg-emerald-700' 
-                : 'bg-blue-600 hover:bg-blue-700'}`}
+            type="button"
+            onClick={submitTask}
+            className={`flex-1 py-3.5 rounded-2xl font-semibold text-white transition-all ${
+              editingTask
+                ? 'bg-emerald-600 hover:bg-emerald-700'
+                : 'bg-blue-600 hover:bg-blue-700'
+            }`}
+            data-testid="task-submit-button"
           >
             {editingTask ? 'Update Task' : 'Create Task'}
           </button>

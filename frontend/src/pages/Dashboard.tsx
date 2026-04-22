@@ -21,11 +21,9 @@ export default function Dashboard() {
   const [showModal, setShowModal] = useState(false);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
 
-  // Calendar controlled state
   const [calendarDate, setCalendarDate] = useState(new Date());
   const [calendarView, setCalendarView] = useState<'month' | 'week'>('month');
 
-  // Fetch tasks
   useEffect(() => {
     let mounted = true;
 
@@ -51,10 +49,11 @@ export default function Dashboard() {
 
     fetchTasks();
 
-    return () => { mounted = false; };
+    return () => {
+      mounted = false;
+    };
   }, []);
 
-  // Stats & derived values
   const totalTasks = tasks.length;
   const completed = tasks.filter(t => t.completed).length;
   const urgent = tasks.filter(
@@ -82,23 +81,22 @@ export default function Dashboard() {
     allDay: true,
   }));
 
-  // CRUD handlers (unchanged)
- const addTask = async (newTaskData: Omit<Task, 'id'>) => {
-  try {
-    const res = await taskAPI.create(newTaskData);
-    const createdTask = res.data; // assuming backend returns the task directly now
+  const addTask = async (newTaskData: Omit<Task, 'id'>) => {
+    try {
+      const res = await taskAPI.create(newTaskData);
+      const createdTask = res.data;
 
-    const newTask = {
-      ...createdTask,
-      id: createdTask._id || createdTask.id
-    };
+      const newTask = {
+        ...createdTask,
+        id: createdTask._id || createdTask.id
+      };
 
-    setTasks(prev => [...prev, newTask]);
-    toast.success('Task created successfully');
-  } catch (err: any) {
-    toast.error(err?.response?.data?.message || 'Failed to create task');
-  }
-};
+      setTasks(prev => [...prev, newTask]);
+      toast.success('Task created successfully');
+    } catch (err: any) {
+      toast.error(err?.response?.data?.message || 'Failed to create task');
+    }
+  };
 
   const updateTask = async (id: string, updatedData: Omit<Task, 'id'>) => {
     try {
@@ -109,7 +107,6 @@ export default function Dashboard() {
       setEditingTask(null);
 
       toast.success('Task updated successfully');
-
     } catch (err: any) {
       console.error(err);
       toast.error(err?.response?.data?.message || 'Failed to update task');
@@ -122,9 +119,7 @@ export default function Dashboard() {
     try {
       await taskAPI.delete(id);
       setTasks(prev => prev.filter(t => t.id !== id));
-
       toast.success('Task deleted');
-
     } catch (err) {
       console.error(err);
       toast.error('Failed to delete task');
@@ -154,7 +149,7 @@ export default function Dashboard() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center" data-testid="dashboard-loading">
         <div className="text-xl">Loading your tasks...</div>
       </div>
     );
@@ -162,28 +157,25 @@ export default function Dashboard() {
 
   if (error) {
     return (
-      <div className="min-h-screen flex items-center justify-center text-red-600">
+      <div className="min-h-screen flex items-center justify-center text-red-600" data-testid="dashboard-error">
         {error}
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-
-      {/* HEADER */}
-      <div className="text-white py-5"  style={{
-    background: 'linear-gradient(90deg, #006591 0%, #cc5500 100%)'
-  }}>
+    <div className="min-h-screen bg-gray-50" data-testid="dashboard-page">
+      <div
+        className="text-white py-5"
+        style={{ background: 'linear-gradient(90deg, #006591 0%, #cc5500 100%)' }}
+      >
         <div className="max-w-7xl mx-auto px-6">
-          <h1 className="text-2xl font-semibold">Welcome Back!</h1>
+          <h1 className="text-2xl font-semibold" data-testid="dashboard-title">Welcome Back!</h1>
           <p className="text-sm opacity-80">Are you Ready to Make Your Day Productive?</p>
         </div>
       </div>
 
       <div className="max-w-7xl mx-auto px-6 py-6">
-
-        {/* STATS FULL WIDTH */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
           {[
             { label: 'Total', value: totalTasks, icon: <ListTodo size={30} />, color: 'text-[#006591]' },
@@ -201,35 +193,27 @@ export default function Dashboard() {
           ))}
         </div>
 
-        {/* MAIN GRID */}
         <div className="grid lg:grid-cols-12 gap-6">
-
-          {/* LEFT SIDE */}
           <div className="lg:col-span-8">
-
-            {/* VIEW TOGGLE */}
             <div className="bg-gray-100 p-2 rounded-xl shadow-md flex gap-2 mb-4 w-full">
               <button
                 onClick={() => setViewMode('calendar')}
-                className={`flex-1 py-2 text-base rounded-lg transition ${viewMode === 'calendar' ? 'bg-[#006591] text-white' : 'bg-white'
-                  }`}
+                className={`flex-1 py-2 text-base rounded-lg transition ${viewMode === 'calendar' ? 'bg-[#006591] text-white' : 'bg-white'}`}
+                data-testid="calendar-view-button"
               >
                 Calendar View
               </button>
               <button
                 onClick={() => setViewMode('list')}
-                className={`flex-1 py-2 text-base rounded-lg transition ${viewMode === 'list' ? 'bg-[#006591] text-white' : 'bg-white'
-                  }`}
+                className={`flex-1 py-2 text-base rounded-lg transition ${viewMode === 'list' ? 'bg-[#006591] text-white' : 'bg-white'}`}
+                data-testid="list-view-button"
               >
                 List View
               </button>
             </div>
 
-            {/* CALENDAR */}
             {viewMode === 'calendar' && (
               <div className="bg-white rounded-xl shadow-sm border">
-
-                {/* HEADER INSIDE CALENDAR */}
                 <div className="flex justify-between items-center p-3 border-b">
                   <h2 className="text-sm font-semibold">Calendar</h2>
 
@@ -239,6 +223,7 @@ export default function Dashboard() {
                       setShowModal(true);
                     }}
                     className="flex items-center gap-2 bg-[#cc5500] hover:bg-[#00557a] text-white font-semibold px-4 py-2 rounded-lg text-base shadow-md transition"
+                    data-testid="open-add-task-modal"
                   >
                     <Plus size={20} /> Add Task
                   </button>
@@ -261,12 +246,9 @@ export default function Dashboard() {
               </div>
             )}
 
-            {/* LIST */}
             {viewMode === 'list' && (
               <div className="bg-gray-100 rounded-xl p-3 shadow-md">
-                <table className="w-full border-separate border-spacing-y-3 text-sm">
-
-                  {/* HEADER */}
+                <table className="w-full border-separate border-spacing-y-3 text-sm" data-testid="tasks-table">
                   <thead>
                     <tr className="text-gray-600 text-xs">
                       <th className="text-left px-4">Task</th>
@@ -277,8 +259,7 @@ export default function Dashboard() {
                     </tr>
                   </thead>
 
-                  {/* BODY */}
-                  <tbody>
+                  <tbody data-testid="tasks-table-body">
                     {tasks.map(task => {
                       const date = new Date(task.dueDate);
 
@@ -286,8 +267,8 @@ export default function Dashboard() {
                         <tr
                           key={task.id}
                           className="bg-white shadow-md rounded-xl hover:shadow-lg transition"
+                          data-testid={`task-row-${task.id}`}
                         >
-                          {/* TASK */}
                           <td className="px-4 py-4 rounded-l-xl">
                             <div className="flex items-center gap-2">
                               <input
@@ -301,36 +282,31 @@ export default function Dashboard() {
                             </div>
                           </td>
 
-                          {/* TYPE */}
                           <td className="text-center">
                             <span className="bg-gray-200 px-2 py-1 rounded text-xs capitalize">
                               {task.type}
                             </span>
                           </td>
 
-                          {/* DATE */}
                           <td className="text-center text-gray-600">
-                            <div>
-                              {date.toLocaleDateString()}
-                            </div>
+                            <div>{date.toLocaleDateString()}</div>
                             <div className="text-xs text-gray-400">
                               {date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                             </div>
                           </td>
 
-                          {/* PRIORITY */}
                           <td className="text-center">
                             <span
-                              className={`px-2 py-1 rounded text-xs font-semibold ${task.priority === 'high'
+                              className={`px-2 py-1 rounded text-xs font-semibold ${
+                                task.priority === 'high'
                                   ? 'bg-red-100 text-red-600'
                                   : 'bg-gray-200 text-gray-600'
-                                }`}
+                              }`}
                             >
                               {task.priority}
                             </span>
                           </td>
 
-                          {/* ACTIONS */}
                           <td className="text-center rounded-r-xl">
                             <div className="flex justify-center gap-3">
                               <Edit2
@@ -352,16 +328,25 @@ export default function Dashboard() {
                 </table>
               </div>
             )}
-
           </div>
 
-          {/* RIGHT SIDE */}
           <div className="lg:col-span-4 space-y-5">
+            {nextTask && (
+              <div className="bg-gray-300 rounded-xl p-4 shadow-md">
+                <p className="text-xs text-gray-500 mb-1">Next Deadline</p>
+                <div className="flex justify-between items-center">
+                  <div>
+                    <p className="text-base font-semibold text-black">{nextTask.title}</p>
+                    <p className="text-xs text-gray-500 capitalize">{nextTask.type}</p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-lg font-bold text-red-500">{daysLeft} Days {hoursLeft} Hours</p>
+                    <p className="text-xs text-gray-400">remaining</p>
+                  </div>
+                </div>
+              </div>
+            )}
 
-            {/* NEXT DEADLINE */}
-            {nextTask && (<div className="bg-gray-300 rounded-xl p-4 shadow-md"> <p className="text-xs text-gray-500 mb-1">Next Deadline</p> <div className="flex justify-between items-center"> <div> <p className="text-base font-semibold text-black">{nextTask.title}</p> <p className="text-xs text-gray-500 capitalize">{nextTask.type}</p> </div> <div className="text-right"> <p className="text-lg font-bold text-red-500"> {daysLeft} Days {hoursLeft} Hours </p> <p className="text-xs text-gray-400">remaining</p> </div> </div> </div>)}
-
-            {/* URGENT TASKS */}
             <div className="bg-gray-300 rounded-xl p-5 shadow-md">
               <p className="text-base font-semibold mb-4 flex items-center gap-2">
                 <AlertTriangle size={20} className="text-red-500" />
@@ -377,10 +362,8 @@ export default function Dashboard() {
                     return (
                       <div key={task.id} className="bg-white p-3 rounded-lg shadow-sm">
                         <p className="text-base font-medium text-black">{task.title}</p>
-
                         <div className="text-xs text-gray-500 mt-1">
-                          {date.toLocaleDateString()} • {" "}
-                          {date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                          {date.toLocaleDateString()} • {date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                         </div>
                       </div>
                     );
@@ -391,7 +374,7 @@ export default function Dashboard() {
                 <p className="text-xs text-gray-400">No urgent tasks</p>
               )}
             </div>
-            {/* QUICK ACTIONS */}
+
             <div className="bg-gray-300 rounded-xl p-5 shadow-md">
               <p className="text-base font-semibold mb-4">Quick Actions</p>
 
@@ -402,6 +385,7 @@ export default function Dashboard() {
                     setShowModal(true);
                   }}
                   className="w-full flex items-center gap-2 bg-[#006591] hover:bg-[#00557a] text-white py-3 px-4 rounded-lg text-base shadow-md transition"
+                  data-testid="quick-add-task-button"
                 >
                   <Plus size={18} /> Add Task
                 </button>
@@ -414,7 +398,6 @@ export default function Dashboard() {
                 </Link>
               </div>
             </div>
-
           </div>
         </div>
       </div>
@@ -429,7 +412,6 @@ export default function Dashboard() {
         onUpdate={updateTask}
         editingTask={editingTask}
       />
-
     </div>
   );
 }
