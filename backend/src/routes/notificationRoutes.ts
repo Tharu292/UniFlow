@@ -1,4 +1,3 @@
-// src/routes/notificationRoutes.ts
 import express from "express";
 import {
   getNotifications,
