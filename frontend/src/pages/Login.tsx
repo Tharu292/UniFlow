@@ -86,6 +86,7 @@ const Login = () => {
               Email Address
             </label>
             <input
+            data-testid="login-email"
               type="email"
               placeholder="Enter your email"
               value={email}
@@ -101,6 +102,7 @@ const Login = () => {
               Password
             </label>
             <input
+            data-testid="login-password"
               type="password"
               placeholder="Enter your password"
               value={password}
@@ -122,6 +124,7 @@ const Login = () => {
 
           {/* Button */}
           <button
+          data-testid="login-submit"
             type="submit"
             className="bg-[#0b3c5d] text-white py-3 rounded-xl font-semibold hover:bg-[#092c44] transition shadow-md"
           >
