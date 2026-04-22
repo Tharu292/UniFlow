@@ -1,8 +1,8 @@
 import React from 'react';
-import { 
-  FaTachometerAlt, 
-  FaUsers, 
-  FaBookOpen, 
+import {
+  FaTachometerAlt,
+  FaUsers,
+  FaBookOpen,
   FaBell,
   FaSignOutAlt
 } from 'react-icons/fa';
@@ -37,7 +37,6 @@ const AdminLayout: React.FC = () => {
 
   return (
     <div className="min-h-screen flex bg-gray-50">
-      {/* Sidebar */}
       <aside className="w-64 bg-white border-r border-gray-200 flex flex-col">
         <div className="p-6 border-b border-gray-200">
           <div className="flex items-center space-x-3">
@@ -55,6 +54,7 @@ const AdminLayout: React.FC = () => {
           {menuItems.map((item) => (
             <button
               key={item.id}
+              data-testid={`admin-nav-${item.id}`}
               onClick={() => navigate(item.path)}
               className={`w-full flex items-center gap-3 px-6 py-3 text-sm font-medium transition-colors ${
                 activeTab === item.id
@@ -70,6 +70,7 @@ const AdminLayout: React.FC = () => {
 
         <div className="p-4 border-t border-gray-200">
           <button
+            data-testid="admin-logout-button"
             onClick={handleLogout}
             className="w-full flex items-center gap-3 px-4 py-2 text-sm font-medium text-red-600 hover:bg-red-50 rounded-lg transition-colors"
           >
@@ -79,7 +80,6 @@ const AdminLayout: React.FC = () => {
         </div>
       </aside>
 
-      {/* Main Content - Renders the child route component */}
       <main className="flex-1 overflow-auto">
         <Outlet />
       </main>
