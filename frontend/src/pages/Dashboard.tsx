@@ -2,9 +2,20 @@ import { useState, useEffect } from 'react';
 import { Calendar, dateFnsLocalizer } from 'react-big-calendar';
 import { format, parse, startOfWeek, getDay } from 'date-fns';
 import { enUS } from 'date-fns/locale/en-US';
-import { Clock, AlertTriangle, Plus, BookOpen, Edit2, Trash2, CheckCircle, ListTodo } from 'lucide-react';
+import {
+  Clock,
+  AlertTriangle,
+  Plus,
+  BookOpen,
+  Edit2,
+  Trash2,
+  CheckCircle,
+  ListTodo,
+  Eye
+} from 'lucide-react';
 import type { Task } from '../types';
 import AddTaskModal from '../components/AddTaskModal';
+import TaskDetailsModal from '../components/TaskDetailModal';
 import { Link } from 'react-router-dom';
 import { taskAPI } from '../services/api';
 import toast from 'react-hot-toast';
@@ -20,6 +31,9 @@ export default function Dashboard() {
   const [viewMode, setViewMode] = useState<'calendar' | 'list'>('calendar');
   const [showModal, setShowModal] = useState(false);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
+
+  const [selectedTask, setSelectedTask] = useState<Task | null>(null);
+  const [showDetailsModal, setShowDetailsModal] = useState(false);
 
   const [calendarDate, setCalendarDate] = useState(new Date());
   const [calendarView, setCalendarView] = useState<'month' | 'week'>('month');
@@ -106,6 +120,10 @@ export default function Dashboard() {
       setTasks(prev => prev.map(t => (t.id === id ? updated : t)));
       setEditingTask(null);
 
+      if (selectedTask?.id === id) {
+        setSelectedTask(updated);
+      }
+
       toast.success('Task updated successfully');
     } catch (err: any) {
       console.error(err);
@@ -119,6 +137,12 @@ export default function Dashboard() {
     try {
       await taskAPI.delete(id);
       setTasks(prev => prev.filter(t => t.id !== id));
+
+      if (selectedTask?.id === id) {
+        setSelectedTask(null);
+        setShowDetailsModal(false);
+      }
+
       toast.success('Task deleted');
     } catch (err) {
       console.error(err);
@@ -136,6 +160,10 @@ export default function Dashboard() {
       setTasks(prev =>
         prev.map(t => (t.id === id ? { ...t, completed: !t.completed } : t))
       );
+
+      if (selectedTask?.id === id) {
+        setSelectedTask(prev => prev ? { ...prev, completed: !prev.completed } : prev);
+      }
     } catch (err) {
       console.error(err);
       alert('Failed to update completion status');
@@ -145,6 +173,11 @@ export default function Dashboard() {
   const openEdit = (task: Task) => {
     setEditingTask(task);
     setShowModal(true);
+  };
+
+  const openDetails = (task: Task) => {
+    setSelectedTask(task);
+    setShowDetailsModal(true);
   };
 
   if (loading) {
@@ -300,7 +333,9 @@ export default function Dashboard() {
                               className={`px-2 py-1 rounded text-xs font-semibold ${
                                 task.priority === 'high'
                                   ? 'bg-red-100 text-red-600'
-                                  : 'bg-gray-200 text-gray-600'
+                                  : task.priority === 'medium'
+                                    ? 'bg-yellow-100 text-yellow-700'
+                                    : 'bg-gray-200 text-gray-600'
                               }`}
                             >
                               {task.priority}
@@ -309,15 +344,23 @@ export default function Dashboard() {
 
                           <td className="text-center rounded-r-xl">
                             <div className="flex justify-center gap-3">
+                              <Eye
+                                size={16}
+                                onClick={() => openDetails(task)}
+                                className="cursor-pointer text-blue-600 hover:text-blue-800"
+                                data-testid={`view-task-${task.id}`}
+                              />
                               <Edit2
                                 size={16}
                                 onClick={() => openEdit(task)}
                                 className="cursor-pointer text-gray-600 hover:text-black"
+                                data-testid={`edit-task-${task.id}`}
                               />
                               <Trash2
                                 size={16}
                                 onClick={() => deleteTask(task.id)}
                                 className="cursor-pointer text-red-500 hover:text-red-700"
+                                data-testid={`delete-task-${task.id}`}
                               />
                             </div>
                           </td>
@@ -411,6 +454,15 @@ export default function Dashboard() {
         onAdd={addTask}
         onUpdate={updateTask}
         editingTask={editingTask}
+      />
+
+      <TaskDetailsModal
+        isOpen={showDetailsModal}
+        onClose={() => {
+          setShowDetailsModal(false);
+          setSelectedTask(null);
+        }}
+        task={selectedTask}
       />
     </div>
   );
